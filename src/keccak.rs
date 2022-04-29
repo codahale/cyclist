@@ -28,3 +28,20 @@ impl Permutation<200> for Keccak {
         keccak::f1600(&mut self.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::keccak::KeccakKeyed;
+
+    #[test]
+    fn round_trip() {
+        let mut d = KeccakKeyed::new(b"ok then", None, None, None);
+        let m = b"it's a deal".to_vec();
+        let c = d.seal(&m);
+
+        let mut d = KeccakKeyed::new(b"ok then", None, None, None);
+        let p = d.open(&c);
+
+        assert_eq!(Some(m), p);
+    }
+}

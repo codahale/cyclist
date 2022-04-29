@@ -75,6 +75,8 @@ where
     P: Permutation<WIDTH>,
 {
     fn new() -> Self {
+        debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= WIDTH);
+
         CyclistCore {
             state: P::default(),
             up: true,
@@ -357,6 +359,7 @@ where
     #[cfg(feature = "std")]
     pub fn seal(&mut self, bin: &[u8]) -> Vec<u8> {
         let mut c = vec![0u8; bin.len() + TAG_LEN];
+        c[..bin.len()].copy_from_slice(bin);
         self.seal_mut(&mut c);
         c
     }
