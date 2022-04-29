@@ -2,9 +2,9 @@ use rawbytes::RawBytes;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-pub type KeccakHash = CyclistHash<Keccak, 200, 168>;
+pub type KeccakHash = CyclistHash<Keccak, 200, { 200 - (32 * 2) }>;
 
-pub type KeccakKeyed = CyclistKeyed<Keccak, 200, 192, 100, 32, 16>;
+pub type KeccakKeyed = CyclistKeyed<Keccak, 200, { 200 - (32 / 4) }, { 200 / 2 }, 32, 16>;
 
 #[derive(Clone, Default)]
 pub struct Keccak([u64; 25]);
