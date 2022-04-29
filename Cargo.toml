@@ -1,0 +1,20 @@
+[package]
+name = "cyclist"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["std"]
+std = ["subtle/std"]
+
+[dependencies]
+keccak = "0.1.0"
+rawbytes = "0.1.2"
+subtle = "2.4.1"
+
+[dev-dependencies]
+criterion = { version = "0.3.5", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false
