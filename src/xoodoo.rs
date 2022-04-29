@@ -2,7 +2,7 @@ use rawbytes::RawBytes;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16, 16>;
+pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16>;
 
 pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 48, 44, 24, 16, 16>;
 

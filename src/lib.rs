@@ -165,15 +165,14 @@ where
 }
 
 #[derive(Clone, Debug)]
-pub struct CyclistHash<P, const WIDTH: usize, const ABSORB_RATE: usize, const SQUEEZE_RATE: usize>
+pub struct CyclistHash<P, const WIDTH: usize, const HASH_RATE: usize>
 where
     P: Permutation<WIDTH>,
 {
-    core: CyclistCore<P, WIDTH, false, ABSORB_RATE, SQUEEZE_RATE, 0>,
+    core: CyclistCore<P, WIDTH, false, HASH_RATE, HASH_RATE, 0>,
 }
 
-impl<P, const WIDTH: usize, const ABSORB_RATE: usize, const SQUEEZE_RATE: usize> Default
-    for CyclistHash<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE>
+impl<P, const WIDTH: usize, const HASH_RATE: usize> Default for CyclistHash<P, WIDTH, HASH_RATE>
 where
     P: Permutation<WIDTH>,
 {
@@ -184,8 +183,7 @@ where
     }
 }
 
-impl<P, const WIDTH: usize, const ABSORB_RATE: usize, const SQUEEZE_RATE: usize>
-    CyclistHash<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE>
+impl<P, const WIDTH: usize, const HASH_RATE: usize> CyclistHash<P, WIDTH, HASH_RATE>
 where
     P: Permutation<WIDTH>,
 {

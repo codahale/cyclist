@@ -2,7 +2,7 @@ use rawbytes::RawBytes;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-pub type KeccakHash = CyclistHash<Keccak, 200, 168, 168>;
+pub type KeccakHash = CyclistHash<Keccak, 200, 168>;
 
 pub type KeccakKeyed = CyclistKeyed<Keccak, 200, 192, 100, 32, 16>;
 
