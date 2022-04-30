@@ -72,8 +72,10 @@ impl Permutation<48> for Xoodoo {
     }
 
     fn endian_swap(&mut self) {
-        for word in self.0.iter_mut() {
-            *word = (*word).to_le()
+        if cfg!(target_endian = "big") {
+            for word in self.0.iter_mut() {
+                *word = (*word).to_le()
+            }
         }
     }
 
