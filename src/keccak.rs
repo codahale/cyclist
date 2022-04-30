@@ -19,8 +19,10 @@ impl Permutation<200> for Keccak {
     }
 
     fn endian_swap(&mut self) {
-        for word in self.0.iter_mut() {
-            *word = (*word).to_le()
+        if cfg!(target_endian = "big") {
+            for n in self.0.iter_mut() {
+                *n = n.to_le();
+            }
         }
     }
 
