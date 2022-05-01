@@ -2,89 +2,89 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-pub type XoodyakHash = CyclistHash<Xoodoo, 16>;
+pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16>;
 
-pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 44, 24, 16, 16>;
+pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 48, 44, 24, 16, 16>;
 
-#[derive(Clone, Default)]
-pub struct Xoodoo([u32; 12]);
+#[derive(Clone)]
+#[repr(align(4))]
+pub struct Xoodoo([u8; 48]);
 
-impl Xoodoo {
-    #[inline(always)]
-    fn round(&mut self, round_key: u32) {
-        let st = &mut self.0;
-
-        let p = [
-            st[0] ^ st[4] ^ st[8],
-            st[1] ^ st[5] ^ st[9],
-            st[2] ^ st[6] ^ st[10],
-            st[3] ^ st[7] ^ st[11],
-        ];
-
-        let e = [
-            p[3].rotate_left(5) ^ p[3].rotate_left(14),
-            p[0].rotate_left(5) ^ p[0].rotate_left(14),
-            p[1].rotate_left(5) ^ p[1].rotate_left(14),
-            p[2].rotate_left(5) ^ p[2].rotate_left(14),
-        ];
-
-        let mut tmp = [0u32; 12];
-
-        tmp[0] = e[0] ^ st[0] ^ round_key;
-        tmp[1] = e[1] ^ st[1];
-        tmp[2] = e[2] ^ st[2];
-        tmp[3] = e[3] ^ st[3];
-
-        tmp[4] = e[3] ^ st[7];
-        tmp[5] = e[0] ^ st[4];
-        tmp[6] = e[1] ^ st[5];
-        tmp[7] = e[2] ^ st[6];
-
-        tmp[8] = (e[0] ^ st[8]).rotate_left(11);
-        tmp[9] = (e[1] ^ st[9]).rotate_left(11);
-        tmp[10] = (e[2] ^ st[10]).rotate_left(11);
-        tmp[11] = (e[3] ^ st[11]).rotate_left(11);
-
-        st[0] = (!tmp[4] & tmp[8]) ^ tmp[0];
-        st[1] = (!tmp[5] & tmp[9]) ^ tmp[1];
-        st[2] = (!tmp[6] & tmp[10]) ^ tmp[2];
-        st[3] = (!tmp[7] & tmp[11]) ^ tmp[3];
-
-        st[4] = ((!tmp[8] & tmp[0]) ^ tmp[4]).rotate_left(1);
-        st[5] = ((!tmp[9] & tmp[1]) ^ tmp[5]).rotate_left(1);
-        st[6] = ((!tmp[10] & tmp[2]) ^ tmp[6]).rotate_left(1);
-        st[7] = ((!tmp[11] & tmp[3]) ^ tmp[7]).rotate_left(1);
-
-        st[8] = ((!tmp[2] & tmp[6]) ^ tmp[10]).rotate_left(8);
-        st[9] = ((!tmp[3] & tmp[7]) ^ tmp[11]).rotate_left(8);
-        st[10] = ((!tmp[0] & tmp[4]) ^ tmp[8]).rotate_left(8);
-        st[11] = ((!tmp[1] & tmp[5]) ^ tmp[9]).rotate_left(8);
+impl Default for Xoodoo {
+    fn default() -> Self {
+        Xoodoo([0u8; 48])
     }
 }
 
-impl Permutation for Xoodoo {
-    type State = [u32; 12];
-
-    const WIDTH: usize = 48;
-
+impl Permutation<48> for Xoodoo {
     #[inline(always)]
-    fn state(&self) -> &Self::State {
+    fn state(&self) -> &[u8; 48] {
         &self.0
     }
 
     #[inline(always)]
-    fn state_mut(&mut self) -> &mut Self::State {
+    fn state_mut(&mut self) -> &mut [u8; 48] {
         &mut self.0
     }
 
     #[inline(always)]
     fn permute(&mut self) {
-        LittleEndian::from_slice_u32(&mut self.0);
+        let mut st = [0u32; 12];
+        LittleEndian::read_u32_into(&self.0, &mut st);
         for &round_key in &ROUND_KEYS {
-            self.round(round_key)
+            round(&mut st, round_key);
         }
-        LittleEndian::from_slice_u32(&mut self.0);
+        LittleEndian::write_u32_into(&st, &mut self.0);
     }
+}
+
+#[inline(always)]
+fn round(st: &mut [u32; 12], round_key: u32) {
+    let p = [
+        st[0] ^ st[4] ^ st[8],
+        st[1] ^ st[5] ^ st[9],
+        st[2] ^ st[6] ^ st[10],
+        st[3] ^ st[7] ^ st[11],
+    ];
+
+    let e = [
+        p[3].rotate_left(5) ^ p[3].rotate_left(14),
+        p[0].rotate_left(5) ^ p[0].rotate_left(14),
+        p[1].rotate_left(5) ^ p[1].rotate_left(14),
+        p[2].rotate_left(5) ^ p[2].rotate_left(14),
+    ];
+
+    let mut tmp = [0u32; 12];
+
+    tmp[0] = e[0] ^ st[0] ^ round_key;
+    tmp[1] = e[1] ^ st[1];
+    tmp[2] = e[2] ^ st[2];
+    tmp[3] = e[3] ^ st[3];
+
+    tmp[4] = e[3] ^ st[7];
+    tmp[5] = e[0] ^ st[4];
+    tmp[6] = e[1] ^ st[5];
+    tmp[7] = e[2] ^ st[6];
+
+    tmp[8] = (e[0] ^ st[8]).rotate_left(11);
+    tmp[9] = (e[1] ^ st[9]).rotate_left(11);
+    tmp[10] = (e[2] ^ st[10]).rotate_left(11);
+    tmp[11] = (e[3] ^ st[11]).rotate_left(11);
+
+    st[0] = (!tmp[4] & tmp[8]) ^ tmp[0];
+    st[1] = (!tmp[5] & tmp[9]) ^ tmp[1];
+    st[2] = (!tmp[6] & tmp[10]) ^ tmp[2];
+    st[3] = (!tmp[7] & tmp[11]) ^ tmp[3];
+
+    st[4] = ((!tmp[8] & tmp[0]) ^ tmp[4]).rotate_left(1);
+    st[5] = ((!tmp[9] & tmp[1]) ^ tmp[5]).rotate_left(1);
+    st[6] = ((!tmp[10] & tmp[2]) ^ tmp[6]).rotate_left(1);
+    st[7] = ((!tmp[11] & tmp[3]) ^ tmp[7]).rotate_left(1);
+
+    st[8] = ((!tmp[2] & tmp[6]) ^ tmp[10]).rotate_left(8);
+    st[9] = ((!tmp[3] & tmp[7]) ^ tmp[11]).rotate_left(8);
+    st[10] = ((!tmp[0] & tmp[4]) ^ tmp[8]).rotate_left(8);
+    st[11] = ((!tmp[1] & tmp[5]) ^ tmp[9]).rotate_left(8);
 }
 
 const ROUND_KEYS: [u32; 12] = [
