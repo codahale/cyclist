@@ -2,6 +2,7 @@
 
 use subtle::{ConstantTimeEq, CtOption};
 
+pub mod k12;
 pub mod keccak;
 pub mod xoodoo;
 
