@@ -1,23 +1,24 @@
-use crate::{CyclistHash, CyclistKeyed, Permutation};
 use byteorder::{ByteOrder, LittleEndian};
 
-/// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3).
-pub type KeccakHash = CyclistHash<Keccak<24>, 200, 72>;
+use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-/// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1472/r_squeeze=800.
-pub type KeccakKeyed = CyclistKeyed<Keccak<24>, 200, { 200 - 16 }, { 200 / 2 }, 32, 16>;
+/// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3).
+pub type KeccakHash = CyclistHash<Keccak<24>, 200, { 200 - 128 }>;
+
+/// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1472/r_squeeze=1344.
+pub type KeccakKeyed = CyclistKeyed<Keccak<24>, 200, { 200 - 16 }, { 200 - 32 }, 32, 16>;
 
 /// A Cyclist hash using Keccak-f\[1600,14\] and r=1088 (the same as MarsupilamiFourteen).
-pub type M14Hash = CyclistHash<Keccak<14>, 200, 136>;
+pub type M14Hash = CyclistHash<Keccak<14>, 200, { 200 - 64 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=800.
-pub type M14Keyed = CyclistKeyed<Keccak<14>, 200, { 200 - 8 }, { 200 / 2 }, 32, 16>;
+/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=1432.
+pub type M14Keyed = CyclistKeyed<Keccak<14>, 200, { 200 - 8 }, { 200 - 16 }, 32, 16>;
 
 /// A Cyclist hash using Keccak-f\[1600,12\] and r=1344 (the same as KangarooTwelve).
-pub type K12Hash = CyclistHash<Keccak<12>, 200, 168>;
+pub type K12Hash = CyclistHash<Keccak<12>, 200, { 200 - 32 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=800.
-pub type K12Keyed = CyclistKeyed<Keccak<12>, 200, { 200 - 4 }, { 200 / 2 }, 16, 16>;
+/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1472.
+pub type K12Keyed = CyclistKeyed<Keccak<12>, 200, { 200 - 4 }, { 200 - 16 }, 16, 16>;
 
 #[derive(Clone)]
 #[repr(align(8))]
