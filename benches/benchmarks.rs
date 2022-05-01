@@ -1,3 +1,7 @@
+use aead::{NewAead, Payload};
+use aes_gcm::aead::Aead;
+use aes_gcm::Aes256Gcm;
+use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion};
 
 use cyclist::k12::{K12Hash, K12Keyed};
@@ -62,6 +66,35 @@ fn criterion_benchmark(c: &mut Criterion) {
             st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
             st.squeeze_mut(&mut out);
             out
+        })
+    });
+
+    c.bench_function("aead/aes-gcm", |b| {
+        let k = [7u8; 32];
+        let n = [8u8; 12];
+        let m = [9u8; 1024 * 1024];
+        b.iter(|| {
+            let aead = Aes256Gcm::new(&k.into());
+            aead.encrypt(&n.into(), Payload { msg: &m, aad: &[] })
+        })
+    });
+
+    c.bench_function("aead/chacha20poly1305", |b| {
+        let k = [7u8; 32];
+        let n = [8u8; 12];
+        let m = [9u8; 1024 * 1024];
+        b.iter(|| {
+            let aead = ChaCha20Poly1305::new(&k.into());
+            aead.encrypt(&n.into(), Payload { msg: &m, aad: &[] })
+        })
+    });
+
+    c.bench_function("aead/k12", |b| {
+        let k = [7u8; 32];
+        let m = [9u8; 1024 * 1024];
+        b.iter(|| {
+            let mut k12 = K12Keyed::new(&k, None, None, None);
+            k12.seal(&m)
         })
     });
 }
