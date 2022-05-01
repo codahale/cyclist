@@ -2,14 +2,16 @@ use rawbytes::RawBytes;
 
 use crate::{keccak1600, CyclistHash, CyclistKeyed, Permutation};
 
-pub type K12Hash = CyclistHash<KangarooTwelve, 200, { 200 - (32 * 2) }>;
+pub type K12Hash = CyclistHash<KangarooTwelve, { 200 - (32 * 2) }>;
 
-pub type K12Keyed = CyclistKeyed<KangarooTwelve, 200, { 200 - (32 / 4) }, { 200 / 2 }, 32, 16>;
+pub type K12Keyed = CyclistKeyed<KangarooTwelve, { 200 - (32 / 4) }, { 200 / 2 }, 32, 16>;
 
 #[derive(Clone, Default)]
 pub struct KangarooTwelve([u64; 25]);
 
-impl Permutation<200> for KangarooTwelve {
+impl Permutation for KangarooTwelve {
+    const WIDTH: usize = 200;
+
     fn bytes_view(&self) -> &[u8] {
         RawBytes::bytes_view(&self.0)
     }

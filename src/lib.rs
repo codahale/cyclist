@@ -7,7 +7,10 @@ pub mod keccak;
 mod keccak1600;
 pub mod xoodoo;
 
-pub trait Permutation<const WIDTH: usize>: Default {
+pub trait Permutation: Default {
+    /// The width of the permutation's state, in bytes.
+    const WIDTH: usize;
+
     /// Returns the permutation's state as a slice of native-endian bytes.
     fn bytes_view(&self) -> &[u8];
 
@@ -53,13 +56,12 @@ pub trait Permutation<const WIDTH: usize>: Default {
 #[derive(Clone, Debug)]
 struct CyclistCore<
     P,
-    const WIDTH: usize,
     const KEYED: bool,
     const ABSORB_RATE: usize,
     const SQUEEZE_RATE: usize,
     const RATCHET_RATE: usize,
 > where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
     state: P,
     up: bool,
@@ -67,17 +69,16 @@ struct CyclistCore<
 
 impl<
         P,
-        const WIDTH: usize,
         const KEYED: bool,
         const ABSORB_RATE: usize,
         const SQUEEZE_RATE: usize,
         const RATCHET_RATE: usize,
-    > CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
+    > CyclistCore<P, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
 where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
     fn new() -> Self {
-        debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= WIDTH);
+        debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= P::WIDTH);
 
         CyclistCore {
             state: P::default(),
@@ -90,7 +91,7 @@ where
         debug_assert!(out.as_ref().map(|x| x.len()).unwrap_or(0) <= SQUEEZE_RATE);
         self.up = true;
         if KEYED {
-            self.state.add_byte(cu, WIDTH - 1);
+            self.state.add_byte(cu, P::WIDTH - 1);
         }
         self.state.permute();
         if let Some(out) = out {
@@ -109,9 +110,9 @@ where
             self.state.add_byte(0x01, 0);
         }
         if KEYED {
-            self.state.add_byte(cd, WIDTH - 1);
+            self.state.add_byte(cd, P::WIDTH - 1);
         } else {
-            self.state.add_byte(cd & 0x01, WIDTH - 1);
+            self.state.add_byte(cd & 0x01, P::WIDTH - 1);
         }
     }
 
@@ -169,16 +170,16 @@ where
 }
 
 #[derive(Clone, Debug)]
-pub struct CyclistHash<P, const WIDTH: usize, const HASH_RATE: usize>
+pub struct CyclistHash<P, const HASH_RATE: usize>
 where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
-    core: CyclistCore<P, WIDTH, false, HASH_RATE, HASH_RATE, 0>,
+    core: CyclistCore<P, false, HASH_RATE, HASH_RATE, 0>,
 }
 
-impl<P, const WIDTH: usize, const HASH_RATE: usize> Default for CyclistHash<P, WIDTH, HASH_RATE>
+impl<P, const HASH_RATE: usize> Default for CyclistHash<P, HASH_RATE>
 where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
     fn default() -> Self {
         CyclistHash {
@@ -187,9 +188,9 @@ where
     }
 }
 
-impl<P, const WIDTH: usize, const HASH_RATE: usize> CyclistHash<P, WIDTH, HASH_RATE>
+impl<P, const HASH_RATE: usize> CyclistHash<P, HASH_RATE>
 where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
     pub fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
@@ -217,27 +218,25 @@ where
 #[derive(Clone, Debug)]
 pub struct CyclistKeyed<
     P,
-    const WIDTH: usize,
     const ABSORB_RATE: usize,
     const SQUEEZE_RATE: usize,
     const RATCHET_RATE: usize,
     const TAG_LEN: usize,
 > where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
-    core: CyclistCore<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>,
+    core: CyclistCore<P, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>,
 }
 
 impl<
         P,
-        const WIDTH: usize,
         const ABSORB_RATE: usize,
         const SQUEEZE_RATE: usize,
         const RATCHET_RATE: usize,
         const TAG_LEN: usize,
-    > CyclistKeyed<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE, TAG_LEN>
+    > CyclistKeyed<P, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE, TAG_LEN>
 where
-    P: Permutation<WIDTH>,
+    P: Permutation,
 {
     pub fn new(
         key: &[u8],
@@ -245,8 +244,7 @@ where
         key_id: Option<&[u8]>,
         counter: Option<&[u8]>,
     ) -> Self {
-        let mut core =
-            CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
+        let mut core = CyclistCore::<P, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
         let key_id_len = key_id.unwrap_or_default().len();
         let nonce_len = nonce.unwrap_or_default().len();
         assert!(

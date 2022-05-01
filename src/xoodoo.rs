@@ -2,9 +2,9 @@ use rawbytes::RawBytes;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16>;
+pub type XoodyakHash = CyclistHash<Xoodoo, 16>;
 
-pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 48, 44, 24, 16, 16>;
+pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 44, 24, 16, 16>;
 
 #[derive(Clone, Default)]
 pub struct Xoodoo([u32; 12]);
@@ -62,7 +62,9 @@ impl Xoodoo {
     }
 }
 
-impl Permutation<48> for Xoodoo {
+impl Permutation for Xoodoo {
+    const WIDTH: usize = 48;
+
     fn bytes_view(&self) -> &[u8] {
         RawBytes::bytes_view(&self.0)
     }

@@ -2,14 +2,16 @@ use rawbytes::RawBytes;
 
 use crate::{keccak1600, CyclistHash, CyclistKeyed, Permutation};
 
-pub type KeccakHash = CyclistHash<Keccak, 200, { 200 - (32 * 2) }>;
+pub type KeccakHash = CyclistHash<Keccak, { 200 - (32 * 2) }>;
 
-pub type KeccakKeyed = CyclistKeyed<Keccak, 200, { 200 - (32 / 4) }, { 200 / 2 }, 32, 16>;
+pub type KeccakKeyed = CyclistKeyed<Keccak, { 200 - (32 / 4) }, { 200 / 2 }, 32, 16>;
 
 #[derive(Clone, Default)]
 pub struct Keccak([u64; 25]);
 
-impl Permutation<200> for Keccak {
+impl Permutation for Keccak {
+    const WIDTH: usize = 200;
+
     fn bytes_view(&self) -> &[u8] {
         RawBytes::bytes_view(&self.0)
     }
