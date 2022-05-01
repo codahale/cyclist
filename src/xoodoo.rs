@@ -1,4 +1,4 @@
-use rawbytes::RawBytes;
+use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -63,28 +63,27 @@ impl Xoodoo {
 }
 
 impl Permutation for Xoodoo {
+    type State = [u32; 12];
+
     const WIDTH: usize = 48;
 
-    fn bytes_view(&self) -> &[u8] {
-        RawBytes::bytes_view(&self.0)
+    #[inline(always)]
+    fn state(&self) -> &Self::State {
+        &self.0
     }
 
-    fn bytes_view_mut(&mut self) -> &mut [u8] {
-        RawBytes::bytes_view_mut(&mut self.0)
+    #[inline(always)]
+    fn state_mut(&mut self) -> &mut Self::State {
+        &mut self.0
     }
 
-    fn endian_swap(&mut self) {
-        if cfg!(target_endian = "big") {
-            for word in self.0.iter_mut() {
-                *word = (*word).to_le()
-            }
-        }
-    }
-
+    #[inline(always)]
     fn permute(&mut self) {
+        LittleEndian::from_slice_u32(&mut self.0);
         for &round_key in &ROUND_KEYS {
             self.round(round_key)
         }
+        LittleEndian::from_slice_u32(&mut self.0);
     }
 }
 

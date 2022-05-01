@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use rawbytes::RawBytes;
 use subtle::{ConstantTimeEq, CtOption};
 
 pub mod k12;
@@ -8,17 +9,29 @@ mod keccak1600;
 pub mod xoodoo;
 
 pub trait Permutation: Default {
+    /// The type of the permutation's state.
+    type State: Sync + Unpin + ?Sized;
+
     /// The width of the permutation's state, in bytes.
     const WIDTH: usize;
 
+    /// Returns an immutable pointer to the permutation's state.
+    fn state(&self) -> &Self::State;
+
+    /// Returns a mutable pointer to the permutation's state.
+    fn state_mut(&mut self) -> &mut Self::State;
+
     /// Returns the permutation's state as a slice of native-endian bytes.
-    fn bytes_view(&self) -> &[u8];
+    #[inline(always)]
+    fn bytes_view(&self) -> &[u8] {
+        RawBytes::bytes_view(self.state())
+    }
 
     /// Returns the permutation's state as a mutable slice of native-endian bytes.
-    fn bytes_view_mut(&mut self) -> &mut [u8];
-
-    /// Swaps the endianness of the permutation's state, if necessary.
-    fn endian_swap(&mut self);
+    #[inline(always)]
+    fn bytes_view_mut(&mut self) -> &mut [u8] {
+        RawBytes::bytes_view_mut(self.state_mut())
+    }
 
     /// Permutes the permutation's state.
     fn permute(&mut self);
@@ -26,30 +39,24 @@ pub trait Permutation: Default {
     /// Adds the given byte to the permutation's state at the given offset.
     #[inline(always)]
     fn add_byte(&mut self, byte: u8, offset: usize) {
-        self.endian_swap();
         let st_bytes = self.bytes_view_mut();
         st_bytes[offset] ^= byte;
-        self.endian_swap();
     }
 
     /// Adds the given bytes to the beginning of the permutation's state.
     #[inline(always)]
     fn add_bytes(&mut self, bytes: &[u8]) {
-        self.endian_swap();
         let st_bytes = self.bytes_view_mut();
         for (st_byte, byte) in st_bytes.iter_mut().zip(bytes) {
             *st_byte ^= byte;
         }
-        self.endian_swap();
     }
 
     /// Fills the given mutable slice with bytes from the permutation's state.
     #[inline(always)]
     fn extract_bytes(&mut self, out: &mut [u8]) {
-        self.endian_swap();
         let st_bytes = self.bytes_view();
         out.copy_from_slice(&st_bytes[..out.len()]);
-        self.endian_swap();
     }
 }
 

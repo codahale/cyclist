@@ -8,6 +8,7 @@ default = ["std"]
 std = ["subtle/std"]
 
 [dependencies]
+byteorder = "1.4.3"
 rawbytes = "0.1.2"
 subtle = "2.4.1"
 
