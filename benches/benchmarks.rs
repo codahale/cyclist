@@ -1,103 +1,112 @@
-use aead::{NewAead, Payload};
-use aes_gcm::aead::Aead;
+use aead::{Aead, NewAead, Payload};
 use aes_gcm::Aes256Gcm;
 use chacha20poly1305::ChaCha20Poly1305;
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use sha2::{Digest, Sha256};
 
-use cyclist::k12::{K12Hash, K12Keyed};
-use cyclist::keccak::{KeccakHash, KeccakKeyed};
+use cyclist::keccak::{K12Hash, K12Keyed, KeccakHash, KeccakKeyed, M14Hash, M14Keyed};
 use cyclist::xoodoo::{XoodyakHash, XoodyakKeyed};
 
-fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("Xoodyak hash", |b| {
-        let mut out = [0u8; 64];
-        let mut st = XoodyakHash::default();
-        b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
-        })
-    });
+const MB: usize = 1024 * 1024;
 
-    c.bench_function("Xoodyak keyed", |b| {
-        let mut out = [0u8; 64];
-        let mut st = XoodyakKeyed::new(b"key", None,None, None);
+fn hash_benchmarks(c: &mut Criterion) {
+    let mut hashing = c.benchmark_group("hash");
+    hashing.throughput(Throughput::Bytes(MB as u64));
+    hashing.bench_with_input("xoodyak", &[0u8; MB], |b, block| {
         b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
+            let mut st = XoodyakHash::default();
+            st.absorb(block);
+            st.squeeze(32)
         })
     });
-
-    c.bench_function("Keccak hash", |b| {
-        let mut out = [0u8; 64];
-        let mut st = KeccakHash::default();
+    hashing.bench_with_input("keccak", &[0u8; MB], |b, block| {
         b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
+            let mut st = KeccakHash::default();
+            st.absorb(block);
+            st.squeeze(32)
         })
     });
-
-    c.bench_function("Keccak keyed", |b| {
-        let mut out = [0u8; 64];
-        let mut st = KeccakKeyed::new(b"key", None,None, None);
+    hashing.bench_with_input("k12", &[0u8; MB], |b, block| {
         b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
+            let mut st = K12Hash::default();
+            st.absorb(block);
+            st.squeeze(32)
         })
     });
-
-    c.bench_function("K12 hash", |b| {
-        let mut out = [0u8; 64];
-        let mut st = K12Hash::default();
+    hashing.bench_with_input("m14", &[0u8; MB], |b, block| {
         b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
+            let mut st = M14Hash::default();
+            st.absorb(block);
+            st.squeeze(32)
         })
     });
-
-    c.bench_function("K12 keyed", |b| {
-        let mut out = [0u8; 64];
-        let mut st = K12Keyed::new(b"key", None,None, None);
+    hashing.bench_with_input("sha256", &[0u8; MB], |b, block| {
         b.iter(|| {
-            st.absorb(b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. ");
-            st.squeeze_mut(&mut out);
-            out
+            let mut digest = Sha256::default();
+            digest.update(block);
+            digest.finalize()
         })
     });
-
-    c.bench_function("aead/aes-gcm", |b| {
-        let k = [7u8; 32];
-        let n = [8u8; 12];
-        let m = [9u8; 1024 * 1024];
-        b.iter(|| {
-            let aead = Aes256Gcm::new(&k.into());
-            aead.encrypt(&n.into(), Payload { msg: &m, aad: &[] })
-        })
-    });
-
-    c.bench_function("aead/chacha20poly1305", |b| {
-        let k = [7u8; 32];
-        let n = [8u8; 12];
-        let m = [9u8; 1024 * 1024];
-        b.iter(|| {
-            let aead = ChaCha20Poly1305::new(&k.into());
-            aead.encrypt(&n.into(), Payload { msg: &m, aad: &[] })
-        })
-    });
-
-    c.bench_function("aead/k12", |b| {
-        let k = [7u8; 32];
-        let m = [9u8; 1024 * 1024];
-        b.iter(|| {
-            let mut k12 = K12Keyed::new(&k, None, None, None);
-            k12.seal(&m)
-        })
-    });
+    hashing.finish();
 }
 
-criterion_group!(benches, criterion_benchmark);
+fn aead_benchmarks(c: &mut Criterion) {
+    let mut aead = c.benchmark_group("aead");
+    aead.throughput(Throughput::Bytes(MB as u64));
+    aead.bench_with_input("xoodyak", &[0u8; MB], |b, block| {
+        b.iter(|| {
+            let mut st = XoodyakKeyed::new(&[0u8; 32], None, None, None);
+            st.seal(block)
+        })
+    });
+    aead.bench_with_input("keccak", &[0u8; MB], |b, block| {
+        b.iter(|| {
+            let mut st = KeccakKeyed::new(&[0u8; 32], None, None, None);
+            st.seal(block)
+        })
+    });
+    aead.bench_with_input("k12", &[0u8; MB], |b, block| {
+        b.iter(|| {
+            let mut st = K12Keyed::new(&[0u8; 32], None, None, None);
+            st.seal(block)
+        })
+    });
+    aead.bench_with_input("m14", &[0u8; MB], |b, block| {
+        b.iter(|| {
+            let mut st = M14Keyed::new(&[0u8; 32], None, None, None);
+            st.seal(block)
+        })
+    });
+    aead.bench_with_input("chacha20poly1305", &[0u8; MB], |b, block| {
+        let k = [7u8; 32];
+        let n = [8u8; 12];
+        b.iter(|| {
+            let chacha = ChaCha20Poly1305::new(&k.into());
+            chacha.encrypt(
+                &n.into(),
+                Payload {
+                    msg: block,
+                    aad: &[],
+                },
+            )
+        })
+    });
+    aead.bench_with_input("aes-256-gcm", &[0u8; MB], |b, block| {
+        let k = [7u8; 32];
+        let n = [8u8; 12];
+        b.iter(|| {
+            let chacha = Aes256Gcm::new(&k.into());
+            chacha.encrypt(
+                &n.into(),
+                Payload {
+                    msg: block,
+                    aad: &[],
+                },
+            )
+        })
+    });
+    aead.finish();
+}
+
+criterion_group!(benches, hash_benchmarks, aead_benchmarks);
 criterion_main!(benches);

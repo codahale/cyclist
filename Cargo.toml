@@ -16,6 +16,7 @@ aead = "0.4.3"
 aes-gcm = "0.9.4"
 chacha20poly1305 = "0.9.0"
 criterion = { version = "0.3.5", features = ["html_reports"] }
+sha2 = "0.10.2"
 
 [[bench]]
 name = "benchmarks"
