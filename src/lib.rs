@@ -4,6 +4,7 @@ use subtle::{ConstantTimeEq, CtOption};
 
 pub mod k12;
 pub mod keccak;
+mod keccak1600;
 pub mod xoodoo;
 
 pub trait Permutation<const WIDTH: usize>: Default {

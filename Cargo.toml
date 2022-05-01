@@ -8,7 +8,6 @@ default = ["std"]
 std = ["subtle/std"]
 
 [dependencies]
-keccak = "0.1.0"
 rawbytes = "0.1.2"
 subtle = "2.4.1"
 

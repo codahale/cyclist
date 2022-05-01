@@ -1,6 +1,6 @@
 use rawbytes::RawBytes;
 
-use crate::{CyclistHash, CyclistKeyed, Permutation};
+use crate::{keccak1600, CyclistHash, CyclistKeyed, Permutation};
 
 pub type KeccakHash = CyclistHash<Keccak, 200, { 200 - (32 * 2) }>;
 
@@ -27,7 +27,7 @@ impl Permutation<200> for Keccak {
     }
 
     fn permute(&mut self) {
-        keccak::f1600(&mut self.0)
+        keccak1600::permute::<24>(&mut self.0)
     }
 }
 
