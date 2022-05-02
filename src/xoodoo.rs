@@ -18,16 +18,22 @@ pub type XoodyakKeyed = CyclistKeyed<
     16,
 >;
 
-/// The Xoodoo permutation.
-#[derive(Clone)]
-pub struct Xoodoo;
+/// The full Xoodoo permutation with 12 rounds.
+pub type Xoodoo = XoodooP<12>;
 
-impl Permutation<48> for Xoodoo {
+/// The reduced Xoofff permutation with 6 rounds.
+pub type Xoofff = XoodooP<6>;
+
+/// The generic Xoodoo-p permutation, parameterized with the number of rounds.
+#[derive(Clone)]
+pub struct XoodooP<const R: usize>;
+
+impl<const R: usize> Permutation<48> for XoodooP<R> {
     #[inline(always)]
     fn permute(state: &mut [u8; 48]) {
         let mut st = [0u32; 12];
         LittleEndian::read_u32_into(state.as_slice(), &mut st);
-        for &round_key in &ROUND_KEYS {
+        for &round_key in ROUND_KEYS[..R].iter().rev() {
             round(&mut st, round_key);
         }
         LittleEndian::write_u32_into(&st, state.as_mut_slice());
@@ -84,7 +90,7 @@ fn round(st: &mut [u32; 12], round_key: u32) {
 }
 
 const ROUND_KEYS: [u32; 12] = [
-    0x058, 0x038, 0x3c0, 0x0d0, 0x120, 0x014, 0x060, 0x02c, 0x380, 0x0f0, 0x1a0, 0x012,
+    0x012, 0x1a0, 0x0f0, 0x380, 0x02c, 0x060, 0x014, 0x120, 0x0d0, 0x3c0, 0x038, 0x058,
 ];
 
 #[cfg(test)]

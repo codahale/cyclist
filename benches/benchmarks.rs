@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use cyclist::keccak::{
     K12Hash, K12Keyed, Keccak, KeccakHash, KeccakKeyed, M14Hash, M14Keyed, K12, M14,
 };
-use cyclist::xoodoo::{Xoodoo, XoodyakHash, XoodyakKeyed};
+use cyclist::xoodoo::{Xoodoo, XoodyakHash, XoodyakKeyed, Xoofff};
 use cyclist::Permutation;
 
 const MB: usize = 1024 * 1024;
@@ -131,6 +131,12 @@ fn permutation_benchmarks(c: &mut Criterion) {
         let mut state = Xoodoo::new_state();
         b.iter(|| {
             Xoodoo::permute(&mut state);
+        })
+    });
+    g.bench_function("xoofff", |b| {
+        let mut state = Xoofff::new_state();
+        b.iter(|| {
+            Xoofff::permute(&mut state);
         })
     });
     g.bench_function("keccak", |b| {
