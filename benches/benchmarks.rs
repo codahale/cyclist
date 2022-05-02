@@ -4,8 +4,11 @@ use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use sha2::{Digest, Sha256};
 
-use cyclist::keccak::{K12Hash, K12Keyed, KeccakHash, KeccakKeyed, M14Hash, M14Keyed};
-use cyclist::xoodoo::{XoodyakHash, XoodyakKeyed};
+use cyclist::keccak::{
+    K12Hash, K12Keyed, Keccak, KeccakHash, KeccakKeyed, M14Hash, M14Keyed, K12, M14,
+};
+use cyclist::xoodoo::{Xoodoo, XoodyakHash, XoodyakKeyed};
+use cyclist::Permutation;
 
 const MB: usize = 1024 * 1024;
 
@@ -122,5 +125,39 @@ fn aead_benchmarks(c: &mut Criterion) {
     aead.finish();
 }
 
-criterion_group!(benches, hash_benchmarks, aead_benchmarks);
+fn permutation_benchmarks(c: &mut Criterion) {
+    let mut g = c.benchmark_group("permutation");
+    g.bench_function("xoodoo", |b| {
+        let mut state = Xoodoo::new_state();
+        b.iter(|| {
+            Xoodoo::permute(&mut state);
+        })
+    });
+    g.bench_function("keccak", |b| {
+        let mut state = Keccak::new_state();
+        b.iter(|| {
+            Keccak::permute(&mut state);
+        })
+    });
+    g.bench_function("m14", |b| {
+        let mut state = M14::new_state();
+        b.iter(|| {
+            M14::permute(&mut state);
+        })
+    });
+    g.bench_function("k12", |b| {
+        let mut state = K12::new_state();
+        b.iter(|| {
+            K12::permute(&mut state);
+        })
+    });
+    g.finish();
+}
+
+criterion_group!(
+    benches,
+    hash_benchmarks,
+    aead_benchmarks,
+    permutation_benchmarks
+);
 criterion_main!(benches);
