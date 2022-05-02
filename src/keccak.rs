@@ -21,30 +21,15 @@ pub type K12Hash = CyclistHash<Keccak<12>, 200, { 200 - 32 }>;
 pub type K12Keyed = CyclistKeyed<Keccak<12>, 200, { 200 - 4 }, { 200 - 16 }, 16, 16>;
 
 #[derive(Clone)]
-#[repr(align(8))]
-pub struct Keccak<const R: usize>([u8; 200]);
-
-impl<const R: usize> Default for Keccak<R> {
-    fn default() -> Self {
-        Keccak([0u8; 200])
-    }
-}
+pub struct Keccak<const R: usize>;
 
 impl<const R: usize> Permutation<200> for Keccak<R> {
-    fn state(&self) -> &[u8; 200] {
-        &self.0
-    }
-
-    fn state_mut(&mut self) -> &mut [u8; 200] {
-        &mut self.0
-    }
-
     #[inline(always)]
-    fn permute(&mut self) {
-        let mut st = [0u64; 25];
-        LittleEndian::read_u64_into(&self.0, &mut st);
-        keccak1600::<R>(&mut st);
-        LittleEndian::write_u64_into(&st, &mut self.0);
+    fn permute(state: &mut [u8; 200]) {
+        let mut lanes = [0u64; 25];
+        LittleEndian::read_u64_into(state.as_slice(), &mut lanes);
+        keccak1600::<R>(&mut lanes);
+        LittleEndian::write_u64_into(&lanes, state.as_mut_slice());
     }
 }
 

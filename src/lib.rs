@@ -1,39 +1,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use std::marker::PhantomData;
+
 use subtle::{ConstantTimeEq, CtOption};
 
 pub mod keccak;
 pub mod xoodoo;
 
-pub trait Permutation<const WIDTH: usize>: Default {
-    /// Returns an immutable pointer to the permutation's state.
-    fn state(&self) -> &[u8; WIDTH];
-
-    /// Returns a mutable pointer to the permutation's state.
-    fn state_mut(&mut self) -> &mut [u8; WIDTH];
-
-    /// Permutes the permutation's state.
-    fn permute(&mut self);
-
-    /// Adds the given byte to the permutation's state at the given offset.
+pub trait Permutation<const WIDTH: usize>: Clone {
+    /// Returns a new state.
     #[inline(always)]
-    fn add_byte(&mut self, byte: u8, offset: usize) {
-        self.state_mut()[offset] ^= byte;
+    fn new_state() -> [u8; WIDTH] {
+        [0u8; WIDTH]
     }
 
-    /// Adds the given bytes to the beginning of the permutation's state.
-    #[inline(always)]
-    fn add_bytes(&mut self, bytes: &[u8]) {
-        for (st_byte, byte) in self.state_mut().iter_mut().zip(bytes) {
-            *st_byte ^= byte;
-        }
-    }
-
-    /// Fills the given mutable slice with bytes from the permutation's state.
-    #[inline(always)]
-    fn extract_bytes(&mut self, out: &mut [u8]) {
-        out.copy_from_slice(&self.state()[..out.len()]);
-    }
+    /// Permute the given state.
+    fn permute(state: &mut [u8; WIDTH]);
 }
 
 #[derive(Clone, Debug)]
@@ -47,8 +29,9 @@ struct CyclistCore<
 > where
     P: Permutation<WIDTH>,
 {
-    state: P,
+    state: [u8; WIDTH],
     up: bool,
+    _permutation: PhantomData<P>,
 }
 
 impl<
@@ -66,9 +49,30 @@ where
         debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= WIDTH);
 
         CyclistCore {
-            state: P::default(),
+            state: P::new_state(),
             up: true,
+            _permutation: PhantomData::default(),
         }
+    }
+
+    /// Adds the given byte to the permutation's state at the given offset.
+    #[inline(always)]
+    fn add_byte(&mut self, byte: u8, offset: usize) {
+        self.state[offset] ^= byte;
+    }
+
+    /// Adds the given bytes to the beginning of the permutation's state.
+    #[inline(always)]
+    fn add_bytes(&mut self, bytes: &[u8]) {
+        for (st_byte, byte) in self.state.iter_mut().zip(bytes) {
+            *st_byte ^= byte;
+        }
+    }
+
+    /// Fills the given mutable slice with bytes from the permutation's state.
+    #[inline(always)]
+    fn extract_bytes(&mut self, out: &mut [u8]) {
+        out.copy_from_slice(&self.state[..out.len()]);
     }
 
     #[inline(always)]
@@ -76,11 +80,11 @@ where
         debug_assert!(out.as_ref().map(|x| x.len()).unwrap_or(0) <= SQUEEZE_RATE);
         self.up = true;
         if KEYED {
-            self.state.add_byte(cu, WIDTH - 1);
+            self.add_byte(cu, WIDTH - 1);
         }
-        self.state.permute();
+        P::permute(&mut self.state);
         if let Some(out) = out {
-            self.state.extract_bytes(out);
+            self.extract_bytes(out);
         }
     }
 
@@ -89,15 +93,15 @@ where
         debug_assert!(bin.as_ref().map(|x| x.len()).unwrap_or(0) <= ABSORB_RATE);
         self.up = false;
         if let Some(bin) = bin {
-            self.state.add_bytes(bin);
-            self.state.add_byte(0x01, bin.len());
+            self.add_bytes(bin);
+            self.add_byte(0x01, bin.len());
         } else {
-            self.state.add_byte(0x01, 0);
+            self.add_byte(0x01, 0);
         }
         if KEYED {
-            self.state.add_byte(cd, WIDTH - 1);
+            self.add_byte(cd, WIDTH - 1);
         } else {
-            self.state.add_byte(cd & 0x01, WIDTH - 1);
+            self.add_byte(cd & 0x01, WIDTH - 1);
         }
     }
 
@@ -135,7 +139,7 @@ where
     }
 
     #[cfg(feature = "std")]
-    pub fn squeeze(&mut self, n: usize) -> Vec<u8> {
+    fn squeeze(&mut self, n: usize) -> Vec<u8> {
         let mut b = vec![0u8; n];
         self.squeeze_mut(&mut b);
         b
@@ -147,7 +151,7 @@ where
     }
 
     #[cfg(feature = "std")]
-    pub fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
+    fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
         let mut b = vec![0u8; n];
         self.squeeze_key_mut(&mut b);
         b

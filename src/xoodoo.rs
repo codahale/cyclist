@@ -7,34 +7,17 @@ pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16>;
 pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 48, 44, 24, 16, 16>;
 
 #[derive(Clone)]
-#[repr(align(4))]
-pub struct Xoodoo([u8; 48]);
-
-impl Default for Xoodoo {
-    fn default() -> Self {
-        Xoodoo([0u8; 48])
-    }
-}
+pub struct Xoodoo;
 
 impl Permutation<48> for Xoodoo {
     #[inline(always)]
-    fn state(&self) -> &[u8; 48] {
-        &self.0
-    }
-
-    #[inline(always)]
-    fn state_mut(&mut self) -> &mut [u8; 48] {
-        &mut self.0
-    }
-
-    #[inline(always)]
-    fn permute(&mut self) {
+    fn permute(state: &mut [u8; 48]) {
         let mut st = [0u32; 12];
-        LittleEndian::read_u32_into(&self.0, &mut st);
+        LittleEndian::read_u32_into(state.as_slice(), &mut st);
         for &round_key in &ROUND_KEYS {
             round(&mut st, round_key);
         }
-        LittleEndian::write_u32_into(&st, &mut self.0);
+        LittleEndian::write_u32_into(&st, state.as_mut_slice());
     }
 }
 
