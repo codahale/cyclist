@@ -3,6 +3,7 @@
 use std::marker::PhantomData;
 
 use subtle::{ConstantTimeEq, CtOption};
+use zeroize::ZeroizeOnDrop;
 
 pub mod keccak;
 pub mod xoodoo;
@@ -22,7 +23,7 @@ pub trait Permutation<const WIDTH: usize>: Clone {
 /// The core implementation of the Cyclist mode. Parameterized with the permutation algorithm, the
 /// permutation width, whether the mode is keyed or not, the absorb rate, the squeeze rate, and the
 /// ratchet rate.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, ZeroizeOnDrop)]
 struct CyclistCore<
     P,
     const WIDTH: usize,
@@ -35,6 +36,7 @@ struct CyclistCore<
 {
     state: [u8; WIDTH],
     up: bool,
+    #[zeroize(skip)]
     _permutation: PhantomData<P>,
 }
 
