@@ -1,5 +1,5 @@
 use aead::{Aead, NewAead, Payload};
-use aes_gcm::Aes256Gcm;
+use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use sha2::{Digest, Sha256};
@@ -91,12 +91,26 @@ fn aead_benchmarks(c: &mut Criterion) {
             )
         })
     });
+    aead.bench_with_input("aes-128-gcm", &[0u8; MB], |b, block| {
+        let k = [7u8; 16];
+        let n = [8u8; 12];
+        b.iter(|| {
+            let aes = Aes128Gcm::new(&k.into());
+            aes.encrypt(
+                &n.into(),
+                Payload {
+                    msg: block,
+                    aad: &[],
+                },
+            )
+        })
+    });
     aead.bench_with_input("aes-256-gcm", &[0u8; MB], |b, block| {
         let k = [7u8; 32];
         let n = [8u8; 12];
         b.iter(|| {
-            let chacha = Aes256Gcm::new(&k.into());
-            chacha.encrypt(
+            let aes = Aes256Gcm::new(&k.into());
+            aes.encrypt(
                 &n.into(),
                 Payload {
                     msg: block,
