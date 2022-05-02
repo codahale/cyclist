@@ -20,6 +20,7 @@ pub type K12Hash = CyclistHash<Keccak<12>, 200, { 200 - 32 }>;
 /// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1472.
 pub type K12Keyed = CyclistKeyed<Keccak<12>, 200, { 200 - 4 }, { 200 - 16 }, 16, 16>;
 
+/// The Keccak-p permutation, parameterized with 0≤R≤24 rounds.
 #[derive(Clone)]
 pub struct Keccak<const R: usize>;
 

@@ -2,10 +2,13 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
+/// Xoodyak in hash mode.
 pub type XoodyakHash = CyclistHash<Xoodoo, 48, 16>;
 
+/// Xoodyak in keyed mode.
 pub type XoodyakKeyed = CyclistKeyed<Xoodoo, 48, 44, 24, 16, 16>;
 
+/// The Xoodoo permutation.
 #[derive(Clone)]
 pub struct Xoodoo;
 
