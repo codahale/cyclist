@@ -2,18 +2,15 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-const B: usize = 384;
-const W: usize = 4;
-
 /// Xoodyak in hash mode.
-pub type XoodyakHash = CyclistHash<Xoodoo, { B / 8 }, { ((B - 256) / W * W) / 8 }>;
+pub type XoodyakHash = CyclistHash<Xoodoo, { 384 / 8 }, { (384 - 256) / 8 }>;
 
 /// Xoodyak in keyed mode.
 pub type XoodyakKeyed = CyclistKeyed<
     Xoodoo,
-    { B / 8 },
-    { ((B - 32) / W * W) / 8 }, // keep at least 32 bits at the end of the state
-    { ((B - 192) / W * W) / 8 }, // max(c=192,32)
+    { 384 / 8 },
+    { (384 - 32) / 8 },  // R_kin=b-W
+    { (384 - 192) / 8 }, // R_kout=b-c
     16,
     16,
 >;
