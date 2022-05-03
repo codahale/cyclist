@@ -3,6 +3,7 @@ use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use sha2::{Digest, Sha256, Sha512};
+use sha3::Sha3_512;
 
 use cyclist::keccak::{
     K12Hash, K12Keyed, Keccak, KeccakHash, KeccakKeyed, M14Hash, M14Keyed, K12, M14,
@@ -21,6 +22,13 @@ fn hash_benchmarks(c: &mut Criterion) {
             let mut st = XoodyakHash::default();
             st.absorb(block);
             st.squeeze(32)
+        })
+    });
+    hashing.bench_with_input("sha3", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut digest = Sha3_512::default();
+            digest.update(block);
+            digest.finalize()
         })
     });
     hashing.bench_with_input("keccak", &[0u8; INPUT], |b, block| {
