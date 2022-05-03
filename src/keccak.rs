@@ -3,11 +3,11 @@
 //! The three varieties of Cyclist schemes are:
 //!
 //! 1. [KeccakHash] and [KeccakKeyed], which use the full Keccak-f\[1600\] permutation and are
-//!    parameterized to offer ~256-bit security.
+//!    parameterized to offer ~256-bit security with a very conservative design.
 //! 2. [M14Hash] and [M14Keyed], which use the 14-round Keccak-f\[1600,14\] permutation are are
-//!    parameterized to offer ~192-bit security.
+//!    parameterized to offer ~256-bit security with a performance-oriented design.
 //! 3. [K12Hash] and [K12Keyed], which use the 12-round Keccak-f\[1600,12\] permutation and are
-//!    parameterized to offer ~128-bit security.
+//!    parameterized to offer ~128-bit security with a performance-oriented design.
 //!
 //! Parameters were chosen based on the discussion of the
 //! [Motorist](https://keccak.team/files/Keyakv2-doc2.2.pdf) construction, of which Cyclist is a
@@ -20,11 +20,12 @@ use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-/// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3).
+/// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3), offering 256-bit security
+/// and a very conservative design.
 pub type KeccakHash = CyclistHash<Keccak, { 1600 / 8 }, { 576 / 8 }>;
 
 /// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
-/// security.
+/// security and a very conservative design.
 pub type KeccakKeyed = CyclistKeyed<
     Keccak,
     { 1600 / 8 },
@@ -34,24 +35,27 @@ pub type KeccakKeyed = CyclistKeyed<
     32,
 >;
 
-/// A Cyclist hash using Keccak-f\[1600,14\] and r=1088 (the same as MarsupilamiFourteen).
+/// A Cyclist hash using Keccak-f\[1600,14\] and r=1088 (the same as MarsupilamiFourteen), offering
+/// 256-bit security and a performance-oriented design.
 pub type M14Hash = CyclistHash<M14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=1408, offering 192-bit
-/// security.
+/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
+/// security and a performance-oriented design.
 pub type M14Keyed = CyclistKeyed<
     M14,
     { 1600 / 8 },
     { (1600 - 64) / 8 },  // R_kin=b-W
-    { (1600 - 192) / 8 }, // R_kout=b-c
+    { (1600 - 256) / 8 }, // R_kout=b-c
     32,
-    24,
+    32,
 >;
 
-/// A Cyclist hash using Keccak-f\[1600,12\] and r=1344 (the same as KangarooTwelve).
+/// A Cyclist hash using Keccak-f\[1600,12\] and r=1344 (the same as KangarooTwelve), offering
+/// 128-bit security and a performance-oriented design.
 pub type K12Hash = CyclistHash<K12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1472.
+/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1472 and a
+/// performance-oriented design.
 pub type K12Keyed = CyclistKeyed<
     K12,
     { 1600 / 8 },
