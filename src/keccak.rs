@@ -1,45 +1,62 @@
+//! A collection of Keccak-_p_ based permutations and Cyclist schemes.
+//!
+//! The three varieties of Cyclist schemes are:
+//!
+//! 1. [KeccakHash] and [KeccakKeyed], which use the full Keccak-f\[1600\] permutation and are
+//!    parameterized to offer ~256-bit security.
+//! 2. [M14Hash] and [M14Keyed], which use the 14-round Keccak-f\[1600,14\] permutation are are
+//!    parameterized to offer ~192-bit security.
+//! 3. [K12Hash] and [K12Keyed], which use the 12-round Keccak-f\[1600,12\] permutation and are
+//!    parameterized to offer ~128-bit security.
+//!
+//! Parameters were chosen based on the discussion of the
+//! [Motorist](https://keccak.team/files/Keyakv2-doc2.2.pdf) construction, of which Cyclist is a
+//! refinement, and both of which rely on the sponge and fully-keyed sponge security arguments.
+//! Specifically, hash rates are calculated as `b-2k` for `k` bits of security, keyed absorb rates
+//! are calculated as `b-W` where `W` is 64 bits for ~256-bit security and 32 bits for ~128-bit
+//! security, and keyed squeeze rates are calculated as `b-k` for `k` bits of security.
+
 use byteorder::{ByteOrder, LittleEndian};
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-const B: usize = 1600;
-const W: usize = 4;
-
 /// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3).
-pub type KeccakHash = CyclistHash<Keccak, { B / 8 }, { ((B - 1024) / W * W) / 8 }>;
+pub type KeccakHash = CyclistHash<Keccak, { 1600 / 8 }, { 576 / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1568/r_squeeze=1216.
+/// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
+/// security.
 pub type KeccakKeyed = CyclistKeyed<
     Keccak,
-    { B / 8 },
-    { ((B - 32) / W * W) / 8 }, // keep at least 32 bits at the end of the state
-    { ((B - 384) / W * W) / 8 }, // max(c=384,32)
+    { 1600 / 8 },
+    { (1600 - 64) / 8 },  // R_kin=b-W
+    { (1600 - 256) / 8 }, // R_kout=b-c
     32,
-    16,
+    32,
 >;
 
 /// A Cyclist hash using Keccak-f\[1600,14\] and r=1088 (the same as MarsupilamiFourteen).
-pub type M14Hash = CyclistHash<M14, { B / 8 }, { ((B - 512) / W * W) / 8 }>;
+pub type M14Hash = CyclistHash<M14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1568/r_squeeze=1344.
+/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=1408, offering 192-bit
+/// security.
 pub type M14Keyed = CyclistKeyed<
     M14,
-    { B / 8 },
-    { ((B - 32) / W * W) / 8 }, // keep at least 32 bits at the end of the state
-    { ((B - 256) / W * W) / 8 }, // max(c=256,32)
+    { 1600 / 8 },
+    { (1600 - 64) / 8 },  // R_kin=b-W
+    { (1600 - 192) / 8 }, // R_kout=b-c
     32,
-    16,
+    24,
 >;
 
 /// A Cyclist hash using Keccak-f\[1600,12\] and r=1344 (the same as KangarooTwelve).
-pub type K12Hash = CyclistHash<K12, { B / 8 }, { 200 - 32 }>;
+pub type K12Hash = CyclistHash<K12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1408.
+/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1472.
 pub type K12Keyed = CyclistKeyed<
     K12,
-    { B / 8 },
-    { ((B - 32) / W * W) / 8 }, // keep at least 32 bits at the end of the state
-    { ((B - 192) / W * W) / 8 }, // max(c=192,32)
+    { 1600 / 8 },
+    { (1600 - 32) / 8 },  // R_kin=b-W
+    { (1600 - 128) / 8 }, // R_kout=b-c
     16,
     16,
 >;
