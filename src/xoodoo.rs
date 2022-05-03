@@ -33,7 +33,7 @@ impl<const R: usize> Permutation<48> for XoodooP<R> {
     fn permute(state: &mut [u8; 48]) {
         let mut st = [0u32; 12];
         LittleEndian::read_u32_into(state.as_slice(), &mut st);
-        for &round_key in ROUND_KEYS[..R].iter().rev() {
+        for &round_key in &ROUND_KEYS[..R] {
             round(&mut st, round_key);
         }
         LittleEndian::write_u32_into(&st, state.as_mut_slice());
@@ -90,7 +90,8 @@ fn round(st: &mut [u32; 12], round_key: u32) {
 }
 
 const ROUND_KEYS: [u32; 12] = [
-    0x012, 0x1a0, 0x0f0, 0x380, 0x02c, 0x060, 0x014, 0x120, 0x0d0, 0x3c0, 0x038, 0x058,
+    0x00000058, 0x00000038, 0x000003C0, 0x000000D0, 0x00000120, 0x00000014, 0x00000060, 0x0000002C,
+    0x00000380, 0x000000F0, 0x000001A0, 0x00000012,
 ];
 
 #[cfg(test)]
