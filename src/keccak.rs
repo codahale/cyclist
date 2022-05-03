@@ -54,8 +54,8 @@ pub type M14Keyed = CyclistKeyed<
 /// 128-bit security and a performance-oriented design.
 pub type K12Hash = CyclistHash<K12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1408 and a
-/// performance-oriented design.
+/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1408, offering 128-bit
+/// security and a performance-oriented design.
 pub type K12Keyed = CyclistKeyed<
     K12,
     { 1600 / 8 },
