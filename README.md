@@ -58,6 +58,6 @@ permutation/k12         time:   [118.23 ns 118.29 ns 118.37 ns]
                         thrpt:  [1.5735 GiB/s 1.5747 GiB/s 1.5755 GiB/s]
 permutation/xoodoo      time:   [66.307 ns 66.326 ns 66.347 ns]                               
                         thrpt:  [689.96 MiB/s 690.18 MiB/s 690.37 MiB/s]
-permutation/xoofff      time:   [33.168 ns 33.186 ns 33.209 ns]                                
+permutation/xoodoo[6]   time:   [33.168 ns 33.186 ns 33.209 ns]                                
                         thrpt:  [1.3461 GiB/s 1.3471 GiB/s 1.3478 GiB/s]
 ```

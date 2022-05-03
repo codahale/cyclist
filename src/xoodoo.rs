@@ -21,8 +21,8 @@ pub type XoodyakKeyed = CyclistKeyed<
 /// The full Xoodoo permutation with 12 rounds.
 pub type Xoodoo = XoodooP<12>;
 
-/// The reduced Xoofff permutation with 6 rounds.
-pub type Xoofff = XoodooP<6>;
+/// The reduced Xoodoo\[6\] permutation with 6 rounds.
+pub type Xoodoo6 = XoodooP<6>;
 
 /// The generic Xoodoo-p permutation, parameterized with the number of rounds.
 #[derive(Clone)]
