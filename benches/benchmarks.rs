@@ -9,7 +9,7 @@ use cyclist::keccak::{
     K12Hash, K12Keyed, Keccak, KeccakHash, KeccakKeyed, M14Hash, M14Keyed, K12, M14,
 };
 use cyclist::xoodoo::{Xoodoo, Xoodoo6, XoodyakHash, XoodyakKeyed};
-use cyclist::Permutation;
+use cyclist::{Cyclist, Permutation};
 
 const INPUT: usize = 100 * 1024;
 

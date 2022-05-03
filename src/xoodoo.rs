@@ -94,6 +94,7 @@ const ROUND_KEYS: [u32; 12] = [
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Cyclist;
 
     #[test]
     fn hash_test_vector() {

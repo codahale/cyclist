@@ -20,6 +20,34 @@ pub trait Permutation<const WIDTH: usize>: Clone {
     fn permute(state: &mut [u8; WIDTH]);
 }
 
+/// Cyclist operations which are common to both hash and keyed modes.
+pub trait Cyclist {
+    /// Absorb the given slice.
+    fn absorb(&mut self, bin: &[u8]);
+
+    // Fill the given mutable slice with squeezed data.
+    fn squeeze_mut(&mut self, out: &mut [u8]);
+
+    // Fill the given mutable slice with squeezed key data.
+    fn squeeze_key_mut(&mut self, out: &mut [u8]);
+
+    /// Return `n` bytes of squeezed data.
+    #[cfg(feature = "std")]
+    fn squeeze(&mut self, n: usize) -> Vec<u8> {
+        let mut out = vec![0u8; n];
+        self.squeeze_mut(&mut out);
+        out
+    }
+
+    /// Return `n` bytes of squeezed key data.
+    #[cfg(feature = "std")]
+    fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
+        let mut out = vec![0u8; n];
+        self.squeeze_key_mut(&mut out);
+        out
+    }
+}
+
 /// The core implementation of the Cyclist mode. Parameterized with the permutation algorithm, the
 /// permutation width, whether the mode is keyed or not, the absorb rate, the squeeze rate, and the
 /// ratchet rate.
@@ -151,26 +179,10 @@ where
         self.squeeze_any(out, 0x40);
     }
 
-    /// Return `n` bytes of squeezed data.
-    #[cfg(feature = "std")]
-    fn squeeze(&mut self, n: usize) -> Vec<u8> {
-        let mut b = vec![0u8; n];
-        self.squeeze_mut(&mut b);
-        b
-    }
-
     /// Fill the given mutable slice with squeezed key data.
     #[inline(always)]
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.squeeze_any(out, 0x20);
-    }
-
-    /// Return `n` bytes of squeezed key data.
-    #[cfg(feature = "std")]
-    fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
-        let mut b = vec![0u8; n];
-        self.squeeze_key_mut(&mut b);
-        b
     }
 }
 
@@ -195,35 +207,20 @@ where
     }
 }
 
-impl<P, const WIDTH: usize, const HASH_RATE: usize> CyclistHash<P, WIDTH, HASH_RATE>
+impl<P, const WIDTH: usize, const HASH_RATE: usize> Cyclist for CyclistHash<P, WIDTH, HASH_RATE>
 where
     P: Permutation<WIDTH>,
 {
-    /// Absorb the given slice.
-    pub fn absorb(&mut self, bin: &[u8]) {
+    fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
     }
 
-    /// Fill the given mutable slice with squeezed data.
-    pub fn squeeze_mut(&mut self, out: &mut [u8]) {
+    fn squeeze_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_mut(out);
     }
 
-    /// Return `n` bytes of squeezed data.
-    #[cfg(feature = "std")]
-    pub fn squeeze(&mut self, n: usize) -> Vec<u8> {
-        self.core.squeeze(n)
-    }
-
-    /// Fill the given mutable slice with squeezed key data.
-    pub fn squeeze_key_mut(&mut self, out: &mut [u8]) {
+    fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_key_mut(out);
-    }
-
-    /// Return `n` bytes of squeezed key data.
-    #[cfg(feature = "std")]
-    pub fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
-        self.core.squeeze_key(n)
     }
 }
 
@@ -300,33 +297,6 @@ where
         }
 
         CyclistKeyed { core }
-    }
-
-    /// Absorb the given slice.
-    pub fn absorb(&mut self, bin: &[u8]) {
-        self.core.absorb(bin);
-    }
-
-    // Fill the given mutable slice with squeezed data.
-    pub fn squeeze_mut(&mut self, out: &mut [u8]) {
-        self.core.squeeze_mut(out);
-    }
-
-    /// Return `n` bytes of squeezed data.
-    #[cfg(feature = "std")]
-    pub fn squeeze(&mut self, n: usize) -> Vec<u8> {
-        self.core.squeeze(n)
-    }
-
-    // Fill the given mutable slice with squeezed key data.
-    pub fn squeeze_key_mut(&mut self, out: &mut [u8]) {
-        self.core.squeeze_key_mut(out);
-    }
-
-    /// Return `n` bytes of squeezed key data.
-    #[cfg(feature = "std")]
-    pub fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
-        self.core.squeeze_key(n)
     }
 
     /// Encrypt the given mutable slice in place.
@@ -420,5 +390,29 @@ where
         let mut t_p = [0u8; TAG_LEN];
         self.squeeze_mut(&mut t_p);
         CtOption::new(c, t.ct_eq(&t_p)).into()
+    }
+}
+
+impl<
+        P,
+        const WIDTH: usize,
+        const ABSORB_RATE: usize,
+        const SQUEEZE_RATE: usize,
+        const RATCHET_RATE: usize,
+        const TAG_LEN: usize,
+    > Cyclist for CyclistKeyed<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE, TAG_LEN>
+where
+    P: Permutation<WIDTH>,
+{
+    fn absorb(&mut self, bin: &[u8]) {
+        self.core.absorb(bin);
+    }
+
+    fn squeeze_mut(&mut self, out: &mut [u8]) {
+        self.core.squeeze_mut(out);
+    }
+
+    fn squeeze_key_mut(&mut self, out: &mut [u8]) {
+        self.core.squeeze_key_mut(out);
     }
 }
