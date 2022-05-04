@@ -138,11 +138,11 @@ where
     #[inline(always)]
     fn up(&mut self, out: Option<&mut [u8]>, cu: u8) {
         debug_assert!(out.as_ref().map(|x| x.len()).unwrap_or(0) <= SQUEEZE_RATE);
-        self.up = true;
         if KEYED {
             self.state.add_byte(cu, WIDTH - 1);
         }
         P::permute(&mut self.state);
+        self.up = true;
         if let Some(out) = out {
             self.state.extract_bytes(out);
         }
@@ -152,18 +152,15 @@ where
     #[inline(always)]
     fn down(&mut self, bin: Option<&[u8]>, cd: u8) {
         debug_assert!(bin.as_ref().map(|x| x.len()).unwrap_or(0) <= ABSORB_RATE);
-        self.up = false;
         if let Some(bin) = bin {
             self.state.add_bytes(bin);
             self.state.add_byte(0x01, bin.len());
         } else {
             self.state.add_byte(0x01, 0);
         }
-        if KEYED {
-            self.state.add_byte(cd, WIDTH - 1);
-        } else {
-            self.state.add_byte(cd & 0x01, WIDTH - 1);
-        }
+        self.state
+            .add_byte(if KEYED { cd } else { cd & 0x01 }, WIDTH - 1);
+        self.up = false;
     }
 
     /// Absorb a block of data at the given rate with the given DOWN mode domain separator.
