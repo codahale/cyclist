@@ -56,7 +56,7 @@ impl<const R: usize> Permutation<48> for XoodooP<R> {
     fn permute(&mut self) {
         let mut st = [0u32; 12];
         LittleEndian::read_u32_into(&self.0, &mut st);
-        for &round_key in &ROUND_KEYS[..R] {
+        for &round_key in &ROUND_KEYS[MAX_ROUNDS - R..MAX_ROUNDS] {
             round(&mut st, round_key);
         }
         LittleEndian::write_u32_into(&st, &mut self.0);
@@ -104,7 +104,9 @@ fn round(st: &mut [u32; 12], round_key: u32) {
     st[11] = ((!tmp1 & tmp5) ^ tmp9).rotate_left(8);
 }
 
-const ROUND_KEYS: [u32; 12] = [
+const MAX_ROUNDS: usize = 12;
+
+const ROUND_KEYS: [u32; MAX_ROUNDS] = [
     0x00000058, 0x00000038, 0x000003C0, 0x000000D0, 0x00000120, 0x00000014, 0x00000060, 0x0000002C,
     0x00000380, 0x000000F0, 0x000001A0, 0x00000012,
 ];
@@ -114,6 +116,38 @@ mod tests {
     use crate::Cyclist;
 
     use super::*;
+
+    #[test]
+    fn xoodoo_kat() {
+        // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
+        let mut state = Xoodoo::default();
+        state.permute();
+        assert_eq!(
+            state.as_ref(),
+            &[
+                0x8d, 0xd8, 0xd5, 0x89, 0xbf, 0xfc, 0x63, 0xa9, 0x19, 0x2d, 0x23, 0x1b, 0x14, 0xa0,
+                0xa5, 0xff, 0x06, 0x81, 0xb1, 0x36, 0xfe, 0xc1, 0xc7, 0xaf, 0xbe, 0x7c, 0xe5, 0xae,
+                0xbd, 0x40, 0x75, 0xa7, 0x70, 0xe8, 0x86, 0x2e, 0xc9, 0xb7, 0xf5, 0xfe, 0xf2, 0xad,
+                0x4f, 0x8b, 0x62, 0x40, 0x4f, 0x5e,
+            ]
+        );
+    }
+
+    #[test]
+    fn xoodoo6_kat() {
+        // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
+        let mut state = Xoodoo6::default();
+        state.permute();
+        assert_eq!(
+            state.as_ref(),
+            &[
+                0xa3, 0xce, 0xc9, 0x28, 0x60, 0x4f, 0x20, 0xad, 0xd6, 0xd0, 0xc3, 0x2e, 0xc5, 0xc7,
+                0x50, 0xf0, 0x25, 0x12, 0xdc, 0x08, 0x04, 0x23, 0x99, 0x61, 0x2d, 0x40, 0x0d, 0x9e,
+                0x9b, 0x9b, 0xd5, 0x42, 0xfc, 0x14, 0x61, 0x1e, 0x97, 0xb6, 0x6e, 0x18, 0x7f, 0xbc,
+                0xdb, 0x35, 0x4e, 0x10, 0xf9, 0xa1,
+            ]
+        );
+    }
 
     #[test]
     fn nist_lwc_round_3_test_vectors() {
@@ -165,45 +199,6 @@ mod tests {
             [
                 102, 50, 250, 132, 79, 91, 248, 161, 121, 248, 225, 33, 105, 159, 111, 230, 135,
                 252, 43, 228, 152, 41, 58, 242, 211, 252, 29, 234, 181, 0, 196, 220
-            ]
-        );
-    }
-
-    #[test]
-    fn test_encrypt() {
-        let mut st = XoodyakKeyed::new(b"key", None, None, None);
-        let st0 = st.clone();
-        let m = b"message";
-        let mut c = *m;
-        st.encrypt_mut(&mut c);
-
-        let mut st = st0.clone();
-        let mut m2 = c;
-        st.decrypt_mut(&mut m2);
-        assert_eq!(m, &m2);
-
-        let mut st = st0.clone();
-        st.ratchet();
-        let mut m2 = c;
-        st.decrypt_mut(&mut m2);
-        assert_ne!(&m[..], m2.as_slice());
-
-        let c0 = c;
-        let mut st = st0.clone();
-        st.decrypt_mut(&mut c);
-        assert_eq!(&m[..], &c[..]);
-
-        let mut st = st0;
-        st.encrypt_mut(&mut c);
-        assert_eq!(c0, c);
-
-        let mut tag = [0u8; 32];
-        st.squeeze_mut(&mut tag);
-        assert_eq!(
-            tag,
-            [
-                10, 175, 140, 82, 142, 109, 23, 111, 201, 232, 32, 52, 122, 46, 254, 206, 236, 54,
-                97, 165, 40, 85, 166, 91, 124, 88, 26, 144, 100, 250, 243, 157
             ]
         );
     }
