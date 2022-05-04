@@ -30,8 +30,8 @@ pub type KeccakHash = CyclistHash<Keccak, { 1600 / 8 }, { 576 / 8 }>;
 pub type KeccakKeyed = CyclistKeyed<
     Keccak,
     { 1600 / 8 },
-    { (1600 - 64) / 8 },  // R_kin=b-W
-    { (1600 - 256) / 8 }, // R_kout=b-c
+    { (1600 - 64) / 8 },  // R_absorb=b-W
+    { (1600 - 256) / 8 }, // R_squeeze=b-c
     32,
     32,
 >;
@@ -45,8 +45,8 @@ pub type M14Hash = CyclistHash<M14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 pub type M14Keyed = CyclistKeyed<
     M14,
     { 1600 / 8 },
-    { (1600 - 64) / 8 },  // R_kin=b-W
-    { (1600 - 256) / 8 }, // R_kout=b-c
+    { (1600 - 64) / 8 },  // R_absorb=b-W
+    { (1600 - 256) / 8 }, // R_squeeze=b-c
     32,
     32,
 >;
@@ -60,8 +60,8 @@ pub type K12Hash = CyclistHash<K12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 pub type K12Keyed = CyclistKeyed<
     K12,
     { 1600 / 8 },
-    { (1600 - 32) / 8 },  // R_kin=b-W
-    { (1600 - 192) / 8 }, // R_kout=b-c
+    { (1600 - 32) / 8 },  // R_absorb=b-W
+    { (1600 - 192) / 8 }, // R_squeeze=b-c
     16,
     16,
 >;
@@ -69,7 +69,7 @@ pub type K12Keyed = CyclistKeyed<
 /// The KangarooTwelve permutation of Keccak-f\[1600,12\].
 pub type K12 = KeccakP<12>;
 
-/// The MarsupalamiFourteen permutation of Keccak-f\[1600,14\].
+/// The MarsupilamiFourteen permutation of Keccak-f\[1600,14\].
 pub type M14 = KeccakP<14>;
 
 /// The full Keccak-f\[1600\] permutation with 24 rounds.

@@ -10,8 +10,8 @@ pub type XoodyakHash = CyclistHash<Xoodoo, { 384 / 8 }, { (384 - 256) / 8 }>;
 pub type XoodyakKeyed = CyclistKeyed<
     Xoodoo,
     { 384 / 8 },
-    { (384 - 32) / 8 },  // R_kin=b-W
-    { (384 - 192) / 8 }, // R_kout=b-c
+    { (384 - 32) / 8 },  // R_absorb=b-W
+    { (384 - 192) / 8 }, // R_squeeze=b-c
     16,
     16,
 >;
