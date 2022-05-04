@@ -143,6 +143,9 @@ const ROUND_KEYS: [u64; MAX_ROUNDS] = [
     0x8000000080008008,
 ];
 
+/// A port of XKCP's `K1600-plain-64bits-ua` implementation of Keccak-f\[1600\]. It optimizes
+/// performance by unrolling and merge two rounds; as a result, only even numbers of rounds are
+/// supported.
 #[inline(always)]
 fn keccak1600<const R: usize>(lanes: &mut [u64; 25]) {
     debug_assert!(R % 2 == 0, "only even numbers of rounds allowed");
