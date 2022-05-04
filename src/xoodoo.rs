@@ -1,3 +1,6 @@
+//! Xoodyak, the official Cyclist selection.
+//!
+//! Uses the [Xoodoo] permutation to provide ~128-bit security.
 use byteorder::{ByteOrder, LittleEndian};
 use zeroize::Zeroize;
 
