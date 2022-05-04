@@ -1,3 +1,44 @@
+//! Cyclist is a mode of operation on top of a full-state keyed duplex construction which provides
+//! fine-grained symmetric-key cryptographic services via stateful objects.
+//!
+//! # Message Digests
+//!
+//! ```rust
+//! use cyclist::Cyclist;
+//! use cyclist::xoodoo::XoodyakHash;
+//!
+//! let mut hash = XoodyakHash::default();
+//! hash.absorb(b"This is an input message!");
+//! let digest = hash.squeeze(16);
+//!
+//! assert_eq!(digest, vec![24, 79, 57, 49, 133, 57, 228, 222, 11, 95, 145, 57, 76, 16, 16, 122]);
+//! ```
+//!
+//! # Message Authentication Codes
+//!
+//! ```rust
+//! use cyclist::Cyclist;
+//! use cyclist::xoodoo::XoodyakKeyed;
+//!
+//! let mut mac = XoodyakKeyed::new(b"This is a secret key!", None, None);
+//! mac.absorb(b"This is an input message!");
+//! let tag = mac.squeeze(16);
+//!
+//! assert_eq!(tag, vec![51, 9, 222, 84, 128, 163, 130, 40, 35, 128, 18, 50, 94, 35, 18, 220]);
+//! ```
+//!
+//! # Authenticated Encryption And Data
+//!
+//! ```rust
+//! use cyclist::Cyclist;
+//! use cyclist::xoodoo::XoodyakKeyed;
+//!
+//! let mut aead = XoodyakKeyed::new(b"This is a secret key!", Some(b"This is a nonce!"), None);
+//! aead.absorb(b"This is authenticated data!");
+//! let ciphertext = aead.seal(b"This is the plaintext!");
+//!
+//! assert_eq!(ciphertext, vec![97, 247, 123, 78, 11, 4, 150, 39, 135, 111, 17, 144, 2, 213, 214, 67, 129, 74, 235, 106, 181, 3, 167, 200, 108, 162, 56, 51, 224, 223, 216, 143, 88, 206, 100, 125, 51, 44]);
+//! ```
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use subtle::{ConstantTimeEq, CtOption};
