@@ -31,18 +31,18 @@ fn hash_benchmarks(c: &mut Criterion) {
             digest.finalize()
         })
     });
-    hashing.bench_with_input("keccak", &[0u8; INPUT], |b, block| {
-        b.iter(|| {
-            let mut st = KeccakHash::default();
-            st.absorb(block);
-            st.squeeze(32)
-        })
-    });
     hashing.bench_with_input("sha256", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut digest = Sha256::default();
             digest.update(block);
             digest.finalize()
+        })
+    });
+    hashing.bench_with_input("keccak", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = KeccakHash::default();
+            st.absorb(block);
+            st.squeeze(32)
         })
     });
     hashing.bench_with_input("sha512", &[0u8; INPUT], |b, block| {
