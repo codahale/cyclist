@@ -1,23 +1,37 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use std::marker::PhantomData;
-
 use subtle::{ConstantTimeEq, CtOption};
-use zeroize::ZeroizeOnDrop;
+use zeroize::Zeroize;
 
 pub mod keccak;
 pub mod xoodoo;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.
-pub trait Permutation<const WIDTH: usize>: Clone {
-    /// Returns a new state.
+pub trait Permutation<const WIDTH: usize>:
+    Clone + Default + AsRef<[u8; WIDTH]> + AsMut<[u8; WIDTH]> + Zeroize
+{
+    /// Adds the given byte to the state at the given offset.
     #[inline(always)]
-    fn new_state() -> [u8; WIDTH] {
-        [0u8; WIDTH]
+    fn add_byte(&mut self, byte: u8, offset: usize) {
+        self.as_mut()[offset] ^= byte;
+    }
+
+    /// Adds the given bytes to the beginning of the state.
+    #[inline(always)]
+    fn add_bytes(&mut self, bytes: &[u8]) {
+        for (st_byte, byte) in self.as_mut().iter_mut().zip(bytes) {
+            *st_byte ^= byte;
+        }
+    }
+
+    /// Fills the given mutable slice with bytes from the state.
+    #[inline(always)]
+    fn extract_bytes(&mut self, out: &mut [u8]) {
+        out.copy_from_slice(&self.as_ref()[..out.len()]);
     }
 
     /// Permute the given state.
-    fn permute(state: &mut [u8; WIDTH]);
+    fn permute(&mut self);
 }
 
 /// Cyclist operations which are common to both hash and keyed modes.
@@ -51,7 +65,7 @@ pub trait Cyclist {
 /// The core implementation of the Cyclist mode. Parameterized with the permutation algorithm, the
 /// permutation width, whether the mode is keyed or not, the absorb rate, the squeeze rate, and the
 /// ratchet rate.
-#[derive(Clone, Debug, ZeroizeOnDrop)]
+#[derive(Clone, Debug)]
 struct CyclistCore<
     P,
     const WIDTH: usize,
@@ -62,10 +76,41 @@ struct CyclistCore<
 > where
     P: Permutation<WIDTH>,
 {
-    state: [u8; WIDTH],
+    state: P,
     up: bool,
-    #[zeroize(skip)]
-    _permutation: PhantomData<P>,
+}
+
+impl<
+        P,
+        const WIDTH: usize,
+        const KEYED: bool,
+        const ABSORB_RATE: usize,
+        const SQUEEZE_RATE: usize,
+        const RATCHET_RATE: usize,
+    > Zeroize for CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
+where
+    P: Permutation<WIDTH>,
+{
+    fn zeroize(&mut self) {
+        self.up.zeroize();
+        self.state.zeroize();
+    }
+}
+
+impl<
+        P,
+        const WIDTH: usize,
+        const KEYED: bool,
+        const ABSORB_RATE: usize,
+        const SQUEEZE_RATE: usize,
+        const RATCHET_RATE: usize,
+    > Drop for CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
+where
+    P: Permutation<WIDTH>,
+{
+    fn drop(&mut self) {
+        self.zeroize()
+    }
 }
 
 impl<
@@ -84,30 +129,9 @@ where
         debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= WIDTH);
 
         CyclistCore {
-            state: P::new_state(),
+            state: P::default(),
             up: true,
-            _permutation: PhantomData::default(),
         }
-    }
-
-    /// Adds the given byte to the state at the given offset.
-    #[inline(always)]
-    fn add_byte(&mut self, byte: u8, offset: usize) {
-        self.state[offset] ^= byte;
-    }
-
-    /// Adds the given bytes to the beginning of the state.
-    #[inline(always)]
-    fn add_bytes(&mut self, bytes: &[u8]) {
-        for (st_byte, byte) in self.state.iter_mut().zip(bytes) {
-            *st_byte ^= byte;
-        }
-    }
-
-    /// Fills the given mutable slice with bytes from the state.
-    #[inline(always)]
-    fn extract_bytes(&mut self, out: &mut [u8]) {
-        out.copy_from_slice(&self.state[..out.len()]);
     }
 
     /// Initiate the UP mode with a block of data and a domain separator.
@@ -116,11 +140,11 @@ where
         debug_assert!(out.as_ref().map(|x| x.len()).unwrap_or(0) <= SQUEEZE_RATE);
         self.up = true;
         if KEYED {
-            self.add_byte(cu, WIDTH - 1);
+            self.state.add_byte(cu, WIDTH - 1);
         }
         P::permute(&mut self.state);
         if let Some(out) = out {
-            self.extract_bytes(out);
+            self.state.extract_bytes(out);
         }
     }
 
@@ -130,15 +154,15 @@ where
         debug_assert!(bin.as_ref().map(|x| x.len()).unwrap_or(0) <= ABSORB_RATE);
         self.up = false;
         if let Some(bin) = bin {
-            self.add_bytes(bin);
-            self.add_byte(0x01, bin.len());
+            self.state.add_bytes(bin);
+            self.state.add_byte(0x01, bin.len());
         } else {
-            self.add_byte(0x01, 0);
+            self.state.add_byte(0x01, 0);
         }
         if KEYED {
-            self.add_byte(cd, WIDTH - 1);
+            self.state.add_byte(cd, WIDTH - 1);
         } else {
-            self.add_byte(cd & 0x01, WIDTH - 1);
+            self.state.add_byte(cd & 0x01, WIDTH - 1);
         }
     }
 

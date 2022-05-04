@@ -17,6 +17,7 @@
 //! security, and keyed squeeze rates are calculated as `b-k` for `k` bits of security.
 
 use byteorder::{ByteOrder, LittleEndian};
+use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -76,15 +77,40 @@ pub type Keccak = KeccakP<24>;
 
 /// The generic Keccak-p permutation, parameterized with 0≤R≤24 rounds.
 #[derive(Clone)]
-pub struct KeccakP<const R: usize>;
+#[repr(align(8))]
+pub struct KeccakP<const R: usize>([u8; 200]);
+
+impl<const R: usize> Default for KeccakP<R> {
+    fn default() -> Self {
+        KeccakP([0u8; 200])
+    }
+}
+
+impl<const R: usize> AsRef<[u8; 200]> for KeccakP<R> {
+    fn as_ref(&self) -> &[u8; 200] {
+        &self.0
+    }
+}
+
+impl<const R: usize> AsMut<[u8; 200]> for KeccakP<R> {
+    fn as_mut(&mut self) -> &mut [u8; 200] {
+        &mut self.0
+    }
+}
+
+impl<const R: usize> Zeroize for KeccakP<R> {
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
 
 impl<const R: usize> Permutation<200> for KeccakP<R> {
     #[inline(always)]
-    fn permute(state: &mut [u8; 200]) {
+    fn permute(&mut self) {
         let mut lanes = [0u64; 25];
-        LittleEndian::read_u64_into(state.as_slice(), &mut lanes);
+        LittleEndian::read_u64_into(&self.0, &mut lanes);
         keccak1600::<R>(&mut lanes);
-        LittleEndian::write_u64_into(&lanes, state.as_mut_slice());
+        LittleEndian::write_u64_into(&lanes, &mut self.0);
     }
 }
 
@@ -241,11 +267,11 @@ mod tests {
 
     #[test]
     fn keccak_kat() {
-        let mut state = Keccak::new_state();
-        Keccak::permute(&mut state);
+        let mut state = Keccak::default();
+        state.permute();
         assert_eq!(
-            state,
-            [
+            state.as_ref(),
+            &[
                 0xe7, 0xdd, 0xe1, 0x40, 0x79, 0x8f, 0x25, 0xf1, 0x8a, 0x47, 0xc0, 0x33, 0xf9, 0xcc,
                 0xd5, 0x84, 0xee, 0xa9, 0x5a, 0xa6, 0x1e, 0x26, 0x98, 0xd5, 0x4d, 0x49, 0x80, 0x6f,
                 0x30, 0x47, 0x15, 0xbd, 0x57, 0xd0, 0x53, 0x62, 0x05, 0x4e, 0x28, 0x8b, 0xd4, 0x6f,
@@ -267,11 +293,11 @@ mod tests {
 
     #[test]
     fn m14_kat() {
-        let mut state = M14::new_state();
-        M14::permute(&mut state);
+        let mut state = M14::default();
+        state.permute();
         assert_eq!(
-            state,
-            [
+            state.as_ref(),
+            &[
                 0xf4, 0x39, 0xae, 0x25, 0x60, 0x5c, 0x05, 0x93, 0xa5, 0xf3, 0x72, 0x67, 0xc1, 0x77,
                 0xba, 0xff, 0xea, 0x51, 0x5a, 0x55, 0xd5, 0x61, 0xed, 0x51, 0xcc, 0xf0, 0xe5, 0x5c,
                 0x83, 0xd0, 0x58, 0x53, 0x3e, 0xfb, 0x72, 0xdf, 0x77, 0xac, 0x01, 0xae, 0x50, 0x9a,
@@ -293,11 +319,11 @@ mod tests {
 
     #[test]
     fn k12_kat() {
-        let mut state = K12::new_state();
-        K12::permute(&mut state);
+        let mut state = K12::default();
+        state.permute();
         assert_eq!(
-            state,
-            [
+            state.as_ref(),
+            &[
                 0x17, 0x86, 0xa7, 0xb9, 0x38, 0x54, 0x5e, 0x8e, 0x1e, 0xd0, 0x59, 0xf2, 0x50, 0x6a,
                 0xcd, 0xd9, 0x35, 0x1f, 0xa9, 0x52, 0xc6, 0xe7, 0xb8, 0x87, 0xc5, 0xe0, 0xe4, 0xcd,
                 0x67, 0xe0, 0x93, 0x10, 0x45, 0x5a, 0xd9, 0xf2, 0x90, 0xab, 0x33, 0xb0, 0x45, 0x1a,

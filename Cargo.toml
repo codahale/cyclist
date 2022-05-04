@@ -10,7 +10,7 @@ std = ["subtle/std"]
 [dependencies]
 byteorder = "1.4.3"
 subtle = "2.4.1"
-zeroize = { version = "1.5.5", features = ["derive"] }
+zeroize = "1.5.5"
 
 [dev-dependencies]
 aead = "0.4.3"

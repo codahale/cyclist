@@ -145,35 +145,25 @@ fn permutation_benchmarks(c: &mut Criterion) {
     let mut g = c.benchmark_group("permutation");
     g.throughput(Throughput::Bytes(200));
     g.bench_function("keccak", |b| {
-        let mut state = Keccak::new_state();
-        b.iter(|| {
-            Keccak::permute(&mut state);
-        })
+        let mut state = Keccak::default();
+        b.iter(|| state.permute())
     });
     g.bench_function("m14", |b| {
-        let mut state = M14::new_state();
-        b.iter(|| {
-            M14::permute(&mut state);
-        })
+        let mut state = M14::default();
+        b.iter(|| state.permute())
     });
     g.bench_function("k12", |b| {
-        let mut state = K12::new_state();
-        b.iter(|| {
-            K12::permute(&mut state);
-        })
+        let mut state = K12::default();
+        b.iter(|| state.permute())
     });
     g.throughput(Throughput::Bytes(48));
     g.bench_function("xoodoo", |b| {
-        let mut state = Xoodoo::new_state();
-        b.iter(|| {
-            Xoodoo::permute(&mut state);
-        })
+        let mut state = Xoodoo::default();
+        b.iter(|| state.permute())
     });
     g.bench_function("xoodoo[6]", |b| {
-        let mut state = Xoodoo6::new_state();
-        b.iter(|| {
-            Xoodoo6::permute(&mut state);
-        })
+        let mut state = Xoodoo6::default();
+        b.iter(|| state.permute())
     });
     g.finish();
 }

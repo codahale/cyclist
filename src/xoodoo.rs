@@ -1,4 +1,5 @@
 use byteorder::{ByteOrder, LittleEndian};
+use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -23,17 +24,42 @@ pub type Xoodoo6 = XoodooP<6>;
 
 /// The generic Xoodoo-p permutation, parameterized with the number of rounds.
 #[derive(Clone)]
-pub struct XoodooP<const R: usize>;
+#[repr(align(4))]
+pub struct XoodooP<const R: usize>([u8; 48]);
+
+impl<const R: usize> Default for XoodooP<R> {
+    fn default() -> Self {
+        XoodooP([0u8; 48])
+    }
+}
+
+impl<const R: usize> AsRef<[u8; 48]> for XoodooP<R> {
+    fn as_ref(&self) -> &[u8; 48] {
+        &self.0
+    }
+}
+
+impl<const R: usize> AsMut<[u8; 48]> for XoodooP<R> {
+    fn as_mut(&mut self) -> &mut [u8; 48] {
+        &mut self.0
+    }
+}
+
+impl<const R: usize> Zeroize for XoodooP<R> {
+    fn zeroize(&mut self) {
+        self.0.zeroize()
+    }
+}
 
 impl<const R: usize> Permutation<48> for XoodooP<R> {
     #[inline(always)]
-    fn permute(state: &mut [u8; 48]) {
+    fn permute(&mut self) {
         let mut st = [0u32; 12];
-        LittleEndian::read_u32_into(state.as_slice(), &mut st);
+        LittleEndian::read_u32_into(&self.0, &mut st);
         for &round_key in &ROUND_KEYS[..R] {
             round(&mut st, round_key);
         }
-        LittleEndian::write_u32_into(&st, state.as_mut_slice());
+        LittleEndian::write_u32_into(&st, &mut self.0);
     }
 }
 
@@ -93,8 +119,9 @@ const ROUND_KEYS: [u32; 12] = [
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::Cyclist;
+
+    use super::*;
 
     #[test]
     fn hash_test_vector() {
