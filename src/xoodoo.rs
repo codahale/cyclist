@@ -116,6 +116,35 @@ mod tests {
     use super::*;
 
     #[test]
+    fn nist_lwc_round_3_test_vectors() {
+        // from https://github.com/XKCP/XKCP/blob/2a8d2311a830ab3037f8c7ef2511e5c7cc032127/tests/SUPERCOP/Xoodyak_aead_round3/selftest.c
+        let key = [
+            0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f, 0x00, 0xf1, 0xe2, 0xd3, 0xc4, 0xb5, 0xa6, 0x97,
+            0x88, 0x79,
+        ];
+        let nonce = [
+            0x6b, 0x4c, 0x2d, 0x0e, 0xef, 0xd0, 0xb1, 0x92, 0x72, 0x53, 0x34, 0x15, 0xf6, 0xd7,
+            0xb8, 0x99,
+        ];
+        let ad = [0x32, 0xf3, 0xb4, 0x75, 0x35, 0xf6];
+        let plaintext = [0xe4, 0x65, 0xe5, 0x66, 0xe6, 0x67, 0xe7];
+        let ciphertext = [
+            0x6e, 0x68, 0x08, 0x1c, 0x7e, 0xac, 0xbf, 0x72, 0xe2, 0xa6, 0x77, 0xa6, 0x0e, 0x44,
+            0x27, 0x48, 0xd7, 0xa8, 0x6e, 0x78, 0x8e, 0xb9, 0xd4,
+        ];
+
+        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None, None);
+        x.absorb(&ad);
+        let ciphertext_p = x.seal(&plaintext);
+        assert_eq!(&ciphertext, ciphertext_p.as_slice());
+
+        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None, None);
+        x.absorb(&ad);
+        let plaintext_p = x.open(&ciphertext);
+        assert_eq!(Some(plaintext.to_vec()), plaintext_p);
+    }
+
+    #[test]
     fn hash_test_vector() {
         let mut hash = XoodyakHash::default();
         let m = b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
