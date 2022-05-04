@@ -39,10 +39,10 @@ pub trait Cyclist {
     /// Absorb the given slice.
     fn absorb(&mut self, bin: &[u8]);
 
-    // Fill the given mutable slice with squeezed data.
+    /// Fill the given mutable slice with squeezed data.
     fn squeeze_mut(&mut self, out: &mut [u8]);
 
-    // Fill the given mutable slice with squeezed key data.
+    /// Fill the given mutable slice with squeezed key data.
     fn squeeze_key_mut(&mut self, out: &mut [u8]);
 
     /// Return `n` bytes of squeezed data.
