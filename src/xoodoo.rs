@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn nist_lwc_round_3_test_vectors() {
+    fn supercop_aead_round_3_test_vector() {
         // from https://github.com/XKCP/XKCP/blob/2a8d2311a830ab3037f8c7ef2511e5c7cc032127/tests/SUPERCOP/Xoodyak_aead_round3/selftest.c
         let key = [
             0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f, 0x00, 0xf1, 0xe2, 0xd3, 0xc4, 0xb5, 0xa6, 0x97,
@@ -167,49 +167,41 @@ mod tests {
             0x27, 0x48, 0xd7, 0xa8, 0x6e, 0x78, 0x8e, 0xb9, 0xd4,
         ];
 
-        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None, None);
+        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None);
         x.absorb(&ad);
         let ciphertext_p = x.seal(&plaintext);
         assert_eq!(&ciphertext, ciphertext_p.as_slice());
 
-        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None, None);
+        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None);
         x.absorb(&ad);
         let plaintext_p = x.open(&ciphertext);
         assert_eq!(Some(plaintext.to_vec()), plaintext_p);
     }
 
     #[test]
-    fn hash_test_vector() {
-        let mut hash = XoodyakHash::default();
-        let m = b"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
-        let mut out = [0u8; 32];
-        hash.absorb(&m[..]);
-        hash.squeeze_mut(&mut out);
-        assert_eq!(
-            out,
-            [
-                144, 82, 141, 27, 59, 215, 34, 104, 197, 106, 251, 142, 112, 235, 111, 168, 19, 6,
-                112, 222, 160, 168, 230, 38, 27, 229, 248, 179, 94, 227, 247, 25
-            ]
-        );
-        hash.absorb(&m[..]);
-        hash.squeeze_mut(&mut out);
-        assert_eq!(
-            out,
-            [
-                102, 50, 250, 132, 79, 91, 248, 161, 121, 248, 225, 33, 105, 159, 111, 230, 135,
-                252, 43, 228, 152, 41, 58, 242, 211, 252, 29, 234, 181, 0, 196, 220
-            ]
-        );
+    fn supercop_hash_test_vector() {
+        // from https://github.com/XKCP/XKCP/blob/2a8d2311a830ab3037f8c7ef2511e5c7cc032127/tests/SUPERCOP/Xoodyak_hash/selftest.c
+        let message = [0x11, 0x97, 0x13, 0xCC, 0x83, 0xEE, 0xEF];
+        let digest = [
+            0x99, 0x9d, 0x58, 0x65, 0xb0, 0xdd, 0x9f, 0xa3, 0x09, 0x73, 0x36, 0x5f, 0xec, 0xf0,
+            0x41, 0x77, 0x8d, 0x04, 0x49, 0xa1, 0xb0, 0xc5, 0x5b, 0x74, 0x36, 0x60, 0x83, 0x1a,
+            0x7d, 0x50, 0x25, 0xee,
+        ];
+
+        let mut x = XoodyakHash::default();
+        x.absorb(&message);
+        let digest_p = x.squeeze(32);
+
+        assert_eq!(&digest, digest_p.as_slice());
     }
 
     #[test]
     fn round_trip() {
-        let mut d = XoodyakKeyed::new(b"ok then", None, None, None);
+        let mut d = XoodyakKeyed::new(b"ok then", None, None);
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = XoodyakKeyed::new(b"ok then", None, None, None);
+        let mut d = XoodyakKeyed::new(b"ok then", None, None);
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);

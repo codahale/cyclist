@@ -562,11 +562,11 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let mut d = KeccakKeyed::new(b"ok then", None, None, None);
+        let mut d = KeccakKeyed::new(b"ok then", None, None);
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = KeccakKeyed::new(b"ok then", None, None, None);
+        let mut d = KeccakKeyed::new(b"ok then", None, None);
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);

@@ -273,46 +273,38 @@ impl<
 where
     P: Permutation<WIDTH>,
 {
-    /// Creates a new [CyclistKeyed] instance with the given key, optional nonce, optional key ID,
-    /// and optional counter.
-    pub fn new(
-        key: &[u8],
-        nonce: Option<&[u8]>,
-        key_id: Option<&[u8]>,
-        counter: Option<&[u8]>,
-    ) -> Self {
+    /// Creates a new [CyclistKeyed] instance with the given key, optional nonce, and optional
+    /// counter.
+    pub fn new(key: &[u8], nonce: Option<&[u8]>, counter: Option<&[u8]>) -> Self {
         let mut core =
             CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
-        let key_id_len = key_id.unwrap_or_default().len();
-        let nonce_len = nonce.unwrap_or_default().len();
+        let nonce = nonce.unwrap_or_default();
         assert!(
-            key.len() + key_id_len + nonce_len < ABSORB_RATE,
-            "key, key_id, and nonce must be < {}",
-            ABSORB_RATE,
+            key.len() + nonce.len() < ABSORB_RATE - 1,
+            "key and nonce must be < {}",
+            ABSORB_RATE - 1,
         );
 
-        let mut iv = [0u8; ABSORB_RATE];
-        let key_len = key.len();
-        iv[..key_len].copy_from_slice(key);
-        let mut iv_len = key_len;
+        // Initialize a buffer for the initial state.
+        let mut state = [0u8; ABSORB_RATE];
+        let mut state_len = 0;
 
-        iv[iv_len] = key_id_len as u8;
-        iv_len += 1;
+        // Append the key to the initial state.
+        state[state_len..state_len + key.len()].copy_from_slice(key);
+        state_len += key.len();
 
-        if let Some(key_id) = key_id {
-            let key_id_len = key_id.len();
-            iv[iv_len..iv_len + key_id_len].copy_from_slice(key_id);
-            iv_len += key_id_len;
-        }
+        // Append the nonce to the initial state.
+        state[state_len..state_len + nonce.len()].copy_from_slice(nonce);
+        state_len += nonce.len();
 
-        if let Some(nonce) = nonce {
-            let nonce_len = nonce.len();
-            iv[iv_len..iv_len + nonce_len].copy_from_slice(nonce);
-            iv_len += nonce_len;
-        }
+        // Set the last byte of the initial state to the key length.
+        state[state_len] = key.len() as u8;
+        state_len += 1;
 
-        core.absorb_any(&iv[..iv_len], ABSORB_RATE, 0x02);
+        // Absorb the initial state.
+        core.absorb_any(&state[..state_len], ABSORB_RATE, 0x02);
 
+        // If given a counter, trickle it in one byte at a time.
         if let Some(counter) = counter {
             core.absorb_any(counter, 1, 0x00)
         }

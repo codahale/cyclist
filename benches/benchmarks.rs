@@ -118,25 +118,25 @@ fn aead_benchmarks(c: &mut Criterion) {
     });
     g.bench_with_input("xoodyak", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = XoodyakKeyed::new(&[0u8; 32], None, None, None);
+            let mut st = XoodyakKeyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
     g.bench_with_input("keccak", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakKeyed::new(&[0u8; 32], None, None, None);
+            let mut st = KeccakKeyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
     g.bench_with_input("m14", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = M14Keyed::new(&[0u8; 32], None, None, None);
+            let mut st = M14Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
     g.bench_with_input("k12", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = K12Keyed::new(&[0u8; 32], None, None, None);
+            let mut st = K12Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
