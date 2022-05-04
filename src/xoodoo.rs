@@ -65,51 +65,43 @@ impl<const R: usize> Permutation<48> for XoodooP<R> {
 
 #[inline(always)]
 fn round(st: &mut [u32; 12], round_key: u32) {
-    let p = [
-        st[0] ^ st[4] ^ st[8],
-        st[1] ^ st[5] ^ st[9],
-        st[2] ^ st[6] ^ st[10],
-        st[3] ^ st[7] ^ st[11],
-    ];
+    let p0 = st[0] ^ st[4] ^ st[8];
+    let p1 = st[1] ^ st[5] ^ st[9];
+    let p2 = st[2] ^ st[6] ^ st[10];
+    let p3 = st[3] ^ st[7] ^ st[11];
 
-    let e = [
-        p[3].rotate_left(5) ^ p[3].rotate_left(14),
-        p[0].rotate_left(5) ^ p[0].rotate_left(14),
-        p[1].rotate_left(5) ^ p[1].rotate_left(14),
-        p[2].rotate_left(5) ^ p[2].rotate_left(14),
-    ];
+    let e0 = p3.rotate_left(5) ^ p3.rotate_left(14);
+    let e1 = p0.rotate_left(5) ^ p0.rotate_left(14);
+    let e2 = p1.rotate_left(5) ^ p1.rotate_left(14);
+    let e3 = p2.rotate_left(5) ^ p2.rotate_left(14);
 
-    let mut tmp = [0u32; 12];
+    let tmp0 = e0 ^ st[0] ^ round_key;
+    let tmp1 = e1 ^ st[1];
+    let tmp2 = e2 ^ st[2];
+    let tmp3 = e3 ^ st[3];
+    let tmp4 = e3 ^ st[7];
+    let tmp5 = e0 ^ st[4];
+    let tmp6 = e1 ^ st[5];
+    let tmp7 = e2 ^ st[6];
+    let tmp8 = (e0 ^ st[8]).rotate_left(11);
+    let tmp9 = (e1 ^ st[9]).rotate_left(11);
+    let tmp10 = (e2 ^ st[10]).rotate_left(11);
+    let tmp11 = (e3 ^ st[11]).rotate_left(11);
 
-    tmp[0] = e[0] ^ st[0] ^ round_key;
-    tmp[1] = e[1] ^ st[1];
-    tmp[2] = e[2] ^ st[2];
-    tmp[3] = e[3] ^ st[3];
+    st[0] = (!tmp4 & tmp8) ^ tmp0;
+    st[1] = (!tmp5 & tmp9) ^ tmp1;
+    st[2] = (!tmp6 & tmp10) ^ tmp2;
+    st[3] = (!tmp7 & tmp11) ^ tmp3;
 
-    tmp[4] = e[3] ^ st[7];
-    tmp[5] = e[0] ^ st[4];
-    tmp[6] = e[1] ^ st[5];
-    tmp[7] = e[2] ^ st[6];
+    st[4] = ((!tmp8 & tmp0) ^ tmp4).rotate_left(1);
+    st[5] = ((!tmp9 & tmp1) ^ tmp5).rotate_left(1);
+    st[6] = ((!tmp10 & tmp2) ^ tmp6).rotate_left(1);
+    st[7] = ((!tmp11 & tmp3) ^ tmp7).rotate_left(1);
 
-    tmp[8] = (e[0] ^ st[8]).rotate_left(11);
-    tmp[9] = (e[1] ^ st[9]).rotate_left(11);
-    tmp[10] = (e[2] ^ st[10]).rotate_left(11);
-    tmp[11] = (e[3] ^ st[11]).rotate_left(11);
-
-    st[0] = (!tmp[4] & tmp[8]) ^ tmp[0];
-    st[1] = (!tmp[5] & tmp[9]) ^ tmp[1];
-    st[2] = (!tmp[6] & tmp[10]) ^ tmp[2];
-    st[3] = (!tmp[7] & tmp[11]) ^ tmp[3];
-
-    st[4] = ((!tmp[8] & tmp[0]) ^ tmp[4]).rotate_left(1);
-    st[5] = ((!tmp[9] & tmp[1]) ^ tmp[5]).rotate_left(1);
-    st[6] = ((!tmp[10] & tmp[2]) ^ tmp[6]).rotate_left(1);
-    st[7] = ((!tmp[11] & tmp[3]) ^ tmp[7]).rotate_left(1);
-
-    st[8] = ((!tmp[2] & tmp[6]) ^ tmp[10]).rotate_left(8);
-    st[9] = ((!tmp[3] & tmp[7]) ^ tmp[11]).rotate_left(8);
-    st[10] = ((!tmp[0] & tmp[4]) ^ tmp[8]).rotate_left(8);
-    st[11] = ((!tmp[1] & tmp[5]) ^ tmp[9]).rotate_left(8);
+    st[8] = ((!tmp2 & tmp6) ^ tmp10).rotate_left(8);
+    st[9] = ((!tmp3 & tmp7) ^ tmp11).rotate_left(8);
+    st[10] = ((!tmp0 & tmp4) ^ tmp8).rotate_left(8);
+    st[11] = ((!tmp1 & tmp5) ^ tmp9).rotate_left(8);
 }
 
 const ROUND_KEYS: [u32; 12] = [
