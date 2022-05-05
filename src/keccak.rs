@@ -484,6 +484,7 @@ mod tests {
 
     #[test]
     fn keccak_kat() {
+        // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
         let mut state = Keccak::default();
         state.permute();
         assert_eq!(
@@ -510,6 +511,7 @@ mod tests {
 
     #[test]
     fn m14_kat() {
+        // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
         let mut state = M14::default();
         state.permute();
         assert_eq!(
@@ -536,6 +538,7 @@ mod tests {
 
     #[test]
     fn k12_kat() {
+        // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
         let mut state = K12::default();
         state.permute();
         assert_eq!(
