@@ -77,11 +77,27 @@ pub trait Permutation<const WIDTH: usize>:
 
 /// Cyclist operations which are common to both hash and keyed modes.
 pub trait Cyclist {
+    /// Returns the number of bytes which can be absorbed before the state is permuted.
+    fn absorb_rate(&self) -> usize;
+
+    /// Returns the number of bytes which can be squeezed before the state is permuted.
+    fn squeeze_rate(&self) -> usize;
+
     /// Absorb the given slice.
     fn absorb(&mut self, bin: &[u8]);
 
+    /// Extend a previous absorb operation with the given slice. Previous absorb operation must have
+    /// been done with a slice whose length is evenly divisible by the absorb rate in order for the
+    /// two operations to be commutative.
+    fn absorb_more(&mut self, bin: &[u8]);
+
     /// Fill the given mutable slice with squeezed data.
     fn squeeze_mut(&mut self, out: &mut [u8]);
+
+    /// Extend a previous squeeze operation with the given mutable slice. Previous squeeze operation
+    /// must have produced a number of bytes that is evenly divisible by the squeeze rate in order
+    /// for the two operations to be commutative.
+    fn squeeze_more_mut(&mut self, out: &mut [u8]);
 
     /// Fill the given mutable slice with squeezed key data.
     fn squeeze_key_mut(&mut self, out: &mut [u8]);
@@ -91,6 +107,14 @@ pub trait Cyclist {
     fn squeeze(&mut self, n: usize) -> Vec<u8> {
         let mut out = vec![0u8; n];
         self.squeeze_mut(&mut out);
+        out
+    }
+
+    /// Extend a previous squeeze operation with an additional `n` bytes of squeezed data.
+    #[cfg(feature = "std")]
+    fn squeeze_more(&mut self, n: usize) -> Vec<u8> {
+        let mut out = vec![0u8; n];
+        self.squeeze_more_mut(&mut out);
         out
     }
 
@@ -235,10 +259,28 @@ where
         self.absorb_any(bin, ABSORB_RATE, 0x03);
     }
 
+    /// Extend a previous absorb with more data.
+    #[inline(always)]
+    fn absorb_more(&mut self, bin: &[u8]) {
+        for chunk in bin.chunks(ABSORB_RATE) {
+            self.up(None, 0x00);
+            self.down(Some(chunk), 0x00);
+        }
+    }
+
     /// Fill the given mutable slice with squeezed data.
     #[inline(always)]
     fn squeeze_mut(&mut self, out: &mut [u8]) {
         self.squeeze_any(out, 0x40);
+    }
+
+    /// Extend a previous squeeze with more data.
+    #[inline(always)]
+    fn squeeze_more_mut(&mut self, out: &mut [u8]) {
+        for chunk in out.chunks_mut(SQUEEZE_RATE) {
+            self.down(None, 0x00);
+            self.up(Some(chunk), 0x00);
+        }
     }
 
     /// Fill the given mutable slice with squeezed key data.
@@ -273,12 +315,28 @@ impl<P, const WIDTH: usize, const HASH_RATE: usize> Cyclist for CyclistHash<P, W
 where
     P: Permutation<WIDTH>,
 {
+    fn absorb_rate(&self) -> usize {
+        HASH_RATE
+    }
+
+    fn squeeze_rate(&self) -> usize {
+        HASH_RATE
+    }
+
     fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
     }
 
+    fn absorb_more(&mut self, bin: &[u8]) {
+        self.core.absorb_more(bin);
+    }
+
     fn squeeze_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_mut(out);
+    }
+
+    fn squeeze_more_mut(&mut self, out: &mut [u8]) {
+        self.core.squeeze_more_mut(out)
     }
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
@@ -458,15 +516,66 @@ impl<
 where
     P: Permutation<WIDTH>,
 {
+    fn absorb_rate(&self) -> usize {
+        ABSORB_RATE
+    }
+
+    fn squeeze_rate(&self) -> usize {
+        SQUEEZE_RATE
+    }
+
     fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
+    }
+
+    fn absorb_more(&mut self, bin: &[u8]) {
+        self.core.absorb_more(bin);
     }
 
     fn squeeze_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_mut(out);
     }
 
+    fn squeeze_more_mut(&mut self, out: &mut [u8]) {
+        self.core.squeeze_more_mut(out)
+    }
+
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_key_mut(out);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::xoodoo::XoodyakHash;
+
+    use super::*;
+
+    #[test]
+    fn absorbing_more() {
+        let mut st = XoodyakHash::default();
+        let mut input = vec![20u8; st.absorb_rate() * 3];
+        input.extend([39u8; 17]);
+        st.absorb(&input);
+        let one = st.squeeze(10);
+
+        let mut st = XoodyakHash::default();
+        st.absorb(&vec![20u8; st.absorb_rate() * 3]);
+        st.absorb_more(&[39u8; 17]);
+        let two = st.squeeze(10);
+
+        assert_eq!(one, two);
+    }
+
+    #[test]
+    fn squeezing_more() {
+        let mut st = XoodyakHash::default();
+        let one = st.squeeze(st.absorb_rate() * 3 + 17);
+
+        let mut st = XoodyakHash::default();
+        let mut two = st.squeeze(st.absorb_rate() * 3);
+        two.extend(st.squeeze_more(17));
+
+        assert_eq!(one, two);
     }
 }
