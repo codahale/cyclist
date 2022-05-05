@@ -41,7 +41,9 @@
 //! ```
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use subtle::{ConstantTimeEq, CtOption};
+use subtle::ConstantTimeEq;
+#[cfg(feature = "std")]
+use subtle::CtOption;
 use zeroize::Zeroize;
 
 pub mod keccak;
