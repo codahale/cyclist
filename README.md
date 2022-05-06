@@ -6,6 +6,9 @@ Includes Xoodyak and several Keccak-_p_ based constructions.
 
 ## Benchmarks
 
+All produced on my M1 Air.
+Comparisons here are to fairly generic 64-bit implementations, no bitslicing or vectorization.
+
 ### Permutations
 
 ![A violin plot of permutation runtimes.](permutations.svg)
