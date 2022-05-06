@@ -47,21 +47,21 @@ fn hash_benchmarks(c: &mut Criterion) {
             digest.finalize()
         })
     });
-    g.bench_with_input("Keccak-f[1600]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-f1600", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakF1600Hash::default();
             st.absorb(block);
             st.squeeze(32)
         })
     });
-    g.bench_with_input("Keccak-p[1600,14]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-p1600-14", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakP1600_14Hash::default();
             st.absorb(block);
             st.squeeze(32)
         })
     });
-    g.bench_with_input("Keccak-p[1600,12]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-p1600-12", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakP1600_12Hash::default();
             st.absorb(block);
@@ -123,19 +123,19 @@ fn aead_benchmarks(c: &mut Criterion) {
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-f[1600]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-f1600", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakF1600Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-p[1600,14]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-p1600-14", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakP1600_14Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-p[1600,12]", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccak-p1600-12", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccakP1600_12Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
@@ -148,15 +148,15 @@ fn permutation_benchmarks(c: &mut Criterion) {
     let mut g = c.benchmark_group("permutation");
     g.sample_size(1_000);
     g.throughput(Throughput::Bytes(200));
-    g.bench_function("Keccak-f[1600]", |b| {
+    g.bench_function("Keccak-f1600", |b| {
         let mut state = KeccakF1600::default();
         b.iter(|| state.permute())
     });
-    g.bench_function("Keccak-p[1600,14]", |b| {
+    g.bench_function("Keccak-p1600-14", |b| {
         let mut state = KeccakP1600_14::default();
         b.iter(|| state.permute())
     });
-    g.bench_function("Keccak-p[1600,12]", |b| {
+    g.bench_function("Keccak-p1600-12", |b| {
         let mut state = KeccakP1600_12::default();
         b.iter(|| state.permute())
     });
@@ -165,7 +165,7 @@ fn permutation_benchmarks(c: &mut Criterion) {
         let mut state = Xoodoo::default();
         b.iter(|| state.permute())
     });
-    g.bench_function("Xoodoo[6]", |b| {
+    g.bench_function("Xoodoo-6", |b| {
         let mut state = Xoodoo6::default();
         b.iter(|| state.permute())
     });
