@@ -162,7 +162,7 @@ fn aead_benchmarks(c: &mut Criterion) {
             st.seal(block)
         })
     });
-    g.bench_with_input("KeccyakMac", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("KeccyakMax", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = KeccyakMaxKeyed::new(&[0u8; 32], None, None);
             st.seal(block)
