@@ -4,6 +4,7 @@ use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use sha2::{Digest, Sha256, Sha512};
 use sha3::Sha3_512;
+use strobe_rs::{SecParam, Strobe};
 
 use cyclist::keccak::{
     KeccakF1600, KeccakF1600Hash, KeccakF1600Keyed, KeccakP1600_12, KeccakP1600_12Hash,
@@ -24,6 +25,24 @@ fn hash_benchmarks(c: &mut Criterion) {
             let mut st = XoodyakHash::default();
             st.absorb(block);
             st.squeeze(32)
+        })
+    });
+    g.bench_with_input("strobe-256", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = Strobe::new(b"example", SecParam::B256);
+            st.send_clr(block, false);
+            let mut mac = [0u8; 32];
+            st.send_mac(&mut mac, false);
+            mac
+        })
+    });
+    g.bench_with_input("strobe-128", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = Strobe::new(b"example", SecParam::B128);
+            st.send_clr(block, false);
+            let mut mac = [0u8; 32];
+            st.send_mac(&mut mac, false);
+            mac
         })
     });
     g.bench_with_input("SHA-3", &[0u8; INPUT], |b, block| {
@@ -101,6 +120,26 @@ fn aead_benchmarks(c: &mut Criterion) {
                     aad: &[],
                 },
             )
+        })
+    });
+    g.bench_with_input("strobe-256", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = Strobe::new(b"example", SecParam::B256);
+            let mut out = vec![0u8; block.len() + 16];
+            out[..block.len()].copy_from_slice(block);
+            st.send_enc(&mut out[..block.len()], false);
+            st.send_mac(&mut out[block.len()..], false);
+            out
+        })
+    });
+    g.bench_with_input("strobe-128", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = Strobe::new(b"example", SecParam::B128);
+            let mut out = vec![0u8; block.len() + 16];
+            out[..block.len()].copy_from_slice(block);
+            st.send_enc(&mut out[..block.len()], false);
+            st.send_mac(&mut out[block.len()..], false);
+            out
         })
     });
     g.bench_with_input("ChaCha20Poly1305", &[0u8; INPUT], |b, block| {
