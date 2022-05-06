@@ -2,12 +2,12 @@
 //!
 //! The three varieties of Cyclist schemes are:
 //!
-//! 1. [KeccakHash] and [KeccakKeyed], which use the full Keccak-f\[1600\] permutation and are
-//!    parameterized to offer ~256-bit security with a very conservative design.
-//! 2. [M14Hash] and [M14Keyed], which use the 14-round Keccak-f\[1600,14\] permutation are are
-//!    parameterized to offer ~256-bit security with a performance-oriented design.
-//! 3. [K12Hash] and [K12Keyed], which use the 12-round Keccak-f\[1600,12\] permutation and are
-//!    parameterized to offer ~128-bit security with a performance-oriented design.
+//! 1. [KeccakF1600Hash] and [KeccakF1600Keyed], which use the full Keccak-f\[1600\] permutation,
+//!    are parameterized to offer ~256-bit security with a very conservative design.
+//! 2. [KeccakP1600_14Hash] and [KeccakP1600_14Keyed], which use the 14-round Keccak-p\[1600,14\]
+//!    permutation, are parameterized to offer ~256-bit security with a performance-oriented design.
+//! 3. [KeccakP1600_12Hash] and [KeccakP1600_12Keyed], which use the 12-round Keccak-p\[1600,12\]
+//!    permutation, are parameterized to offer ~128-bit security with a performance-oriented design.
 //!
 //! Parameters were chosen based on the discussion of the
 //! [Motorist](https://keccak.team/files/Keyakv2-doc2.2.pdf) construction, of which Cyclist is a
@@ -21,14 +21,14 @@ use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-/// A Cyclist hash using Keccak-f\[1600\] and r=576 (the same as SHA-3), offering 256-bit security
-/// and a very conservative design.
-pub type KeccakHash = CyclistHash<Keccak, { 1600 / 8 }, { 576 / 8 }>;
+/// A Cyclist hash using Keccak-f\[1600\] and r=1088, offering 256-bit security and a very
+/// conservative design.
+pub type KeccakF1600Hash = CyclistHash<KeccakF1600, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
 /// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
 /// security and a very conservative design.
-pub type KeccakKeyed = CyclistKeyed<
-    Keccak,
+pub type KeccakF1600Keyed = CyclistKeyed<
+    KeccakF1600,
     { 1600 / 8 },
     { (1600 - 64) / 8 },  // R_absorb=b-W
     { (1600 - 256) / 8 }, // R_squeeze=b-c
@@ -36,14 +36,14 @@ pub type KeccakKeyed = CyclistKeyed<
     32,
 >;
 
-/// A Cyclist hash using Keccak-f\[1600,14\] and r=1088 (the same as MarsupilamiFourteen), offering
-/// 256-bit security and a performance-oriented design.
-pub type M14Hash = CyclistHash<M14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
+/// A Cyclist hash using Keccak-p\[1600,14\] and r=1088, offering 256-bit security and a
+/// performance-oriented design.
+pub type KeccakP1600_14Hash = CyclistHash<KeccakP1600_14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,14\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
+/// A keyed Cyclist using Keccak-p\[1600,14\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
 /// security and a performance-oriented design.
-pub type M14Keyed = CyclistKeyed<
-    M14,
+pub type KeccakP1600_14Keyed = CyclistKeyed<
+    KeccakP1600_14,
     { 1600 / 8 },
     { (1600 - 64) / 8 },  // R_absorb=b-W
     { (1600 - 256) / 8 }, // R_squeeze=b-c
@@ -51,14 +51,14 @@ pub type M14Keyed = CyclistKeyed<
     32,
 >;
 
-/// A Cyclist hash using Keccak-f\[1600,12\] and r=1344 (the same as KangarooTwelve), offering
-/// 128-bit security and a performance-oriented design.
-pub type K12Hash = CyclistHash<K12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
+/// A Cyclist hash using Keccak-p\[1600,12\] and r=1344, offering 128-bit security and a
+/// performance-oriented design.
+pub type KeccakP1600_12Hash = CyclistHash<KeccakP1600_12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600,12\] and r_absorb=1568/r_squeeze=1408, offering 128-bit
+/// A keyed Cyclist using Keccak-p\[1600,12\] and r_absorb=1568/r_squeeze=1408, offering 128-bit
 /// security and a performance-oriented design.
-pub type K12Keyed = CyclistKeyed<
-    K12,
+pub type KeccakP1600_12Keyed = CyclistKeyed<
+    KeccakP1600_12,
     { 1600 / 8 },
     { (1600 - 32) / 8 },  // R_absorb=b-W
     { (1600 - 192) / 8 }, // R_squeeze=b-c
@@ -66,50 +66,50 @@ pub type K12Keyed = CyclistKeyed<
     16,
 >;
 
-/// The KangarooTwelve permutation of Keccak-f\[1600,12\].
-pub type K12 = KeccakP<12>;
+/// The Keccak-p\[1600,12\] permutation from the KangarooTwelve XOF/hash function.
+pub type KeccakP1600_12 = KeccakP1600<12>;
 
-/// The MarsupilamiFourteen permutation of Keccak-f\[1600,14\].
-pub type M14 = KeccakP<14>;
+/// The Keccak-p\[1600,14\] permutation from the MarsupilamiFourteen XOF/hash function.
+pub type KeccakP1600_14 = KeccakP1600<14>;
 
 /// The full Keccak-f\[1600\] permutation with 24 rounds.
-pub type Keccak = KeccakP<24>;
+pub type KeccakF1600 = KeccakP1600<24>;
 
-/// The generic Keccak-p permutation, parameterized with 0≤R≤24 rounds.
+/// The generic Keccak-p\[1600, R\] permutation, parameterized with 0≤R≤24 rounds.
 #[derive(Clone)]
 #[repr(align(8))]
-pub struct KeccakP<const R: usize>([u8; 200]);
+pub struct KeccakP1600<const R: usize>([u8; 200]);
 
-impl<const R: usize> Default for KeccakP<R> {
+impl<const R: usize> Default for KeccakP1600<R> {
     fn default() -> Self {
-        KeccakP([0u8; 200])
+        KeccakP1600([0u8; 200])
     }
 }
 
-impl<const R: usize> AsRef<[u8; 200]> for KeccakP<R> {
+impl<const R: usize> AsRef<[u8; 200]> for KeccakP1600<R> {
     fn as_ref(&self) -> &[u8; 200] {
         &self.0
     }
 }
 
-impl<const R: usize> AsMut<[u8; 200]> for KeccakP<R> {
+impl<const R: usize> AsMut<[u8; 200]> for KeccakP1600<R> {
     fn as_mut(&mut self) -> &mut [u8; 200] {
         &mut self.0
     }
 }
 
-impl<const R: usize> Zeroize for KeccakP<R> {
+impl<const R: usize> Zeroize for KeccakP1600<R> {
     fn zeroize(&mut self) {
         self.0.zeroize();
     }
 }
 
-impl<const R: usize> Permutation<200> for KeccakP<R> {
+impl<const R: usize> Permutation<200> for KeccakP1600<R> {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u64; 25];
         LittleEndian::read_u64_into(&self.0, &mut lanes);
-        keccak1600::<R>(&mut lanes);
+        keccak_p1600::<R>(&mut lanes);
         LittleEndian::write_u64_into(&lanes, &mut self.0);
     }
 }
@@ -143,11 +143,11 @@ const ROUND_KEYS: [u64; MAX_ROUNDS] = [
     0x8000000080008008,
 ];
 
-/// A port of XKCP's `K1600-plain-64bits-ua` implementation of Keccak-f\[1600\]. It optimizes
+/// A port of XKCP's `K1600-plain-64bits-ua` implementation of Keccak-p\[1600\]. It optimizes
 /// performance by unrolling and merge two rounds; as a result, only even numbers of rounds are
 /// supported.
 #[inline(always)]
-fn keccak1600<const R: usize>(lanes: &mut [u64; 25]) {
+fn keccak_p1600<const R: usize>(lanes: &mut [u64; 25]) {
     debug_assert!(R % 2 == 0, "only even numbers of rounds allowed");
 
     let mut a_ba = lanes[0];
@@ -483,9 +483,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn keccak_kat() {
+    fn keccak_f1600_kat() {
         // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
-        let mut state = Keccak::default();
+        let mut state = KeccakF1600::default();
         state.permute();
         assert_eq!(
             state.as_ref(),
@@ -510,9 +510,9 @@ mod tests {
     }
 
     #[test]
-    fn m14_kat() {
+    fn keccak_p1600_14() {
         // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
-        let mut state = M14::default();
+        let mut state = KeccakP1600_14::default();
         state.permute();
         assert_eq!(
             state.as_ref(),
@@ -537,9 +537,9 @@ mod tests {
     }
 
     #[test]
-    fn k12_kat() {
+    fn keccak_p1600_12() {
         // test vector produced by XKCP rev 2a8d2311a830ab3037f8c7ef2511e5c7cc032127
-        let mut state = K12::default();
+        let mut state = KeccakP1600_12::default();
         state.permute();
         assert_eq!(
             state.as_ref(),
@@ -565,11 +565,11 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let mut d = KeccakKeyed::new(b"ok then", None, None);
+        let mut d = KeccakF1600Keyed::new(b"ok then", None, None);
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = KeccakKeyed::new(b"ok then", None, None);
+        let mut d = KeccakF1600Keyed::new(b"ok then", None, None);
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);
