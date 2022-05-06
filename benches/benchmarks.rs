@@ -7,8 +7,8 @@ use sha3::Sha3_512;
 use strobe_rs::{SecParam, Strobe};
 
 use cyclist::keccak::{
-    KeccakF1600, KeccakF1600Hash, KeccakF1600Keyed, KeccakP1600_12, KeccakP1600_12Hash,
-    KeccakP1600_12Keyed, KeccakP1600_14, KeccakP1600_14Hash, KeccakP1600_14Keyed,
+    KeccakF1600, KeccakP1600_12, KeccakP1600_14, Keccyak128Hash, Keccyak128Keyed, Keccyak256Hash,
+    Keccyak256Keyed, KeccyakMaxHash, KeccyakMaxKeyed,
 };
 use cyclist::xoodoo::{Xoodoo, Xoodoo6, XoodyakHash, XoodyakKeyed};
 use cyclist::{Cyclist, Permutation};
@@ -66,23 +66,23 @@ fn hash_benchmarks(c: &mut Criterion) {
             digest.finalize()
         })
     });
-    g.bench_with_input("Keccak-f1600", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("KeccyakMax", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakF1600Hash::default();
+            let mut st = KeccyakMaxHash::default();
             st.absorb(block);
             st.squeeze(32)
         })
     });
-    g.bench_with_input("Keccak-p1600-14", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccyak256", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakP1600_14Hash::default();
+            let mut st = Keccyak256Hash::default();
             st.absorb(block);
             st.squeeze(32)
         })
     });
-    g.bench_with_input("Keccak-p1600-12", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccyak128", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakP1600_12Hash::default();
+            let mut st = Keccyak128Hash::default();
             st.absorb(block);
             st.squeeze(32)
         })
@@ -162,21 +162,21 @@ fn aead_benchmarks(c: &mut Criterion) {
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-f1600", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("KeccyakMac", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakF1600Keyed::new(&[0u8; 32], None, None);
+            let mut st = KeccyakMaxKeyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-p1600-14", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccyak256", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakP1600_14Keyed::new(&[0u8; 32], None, None);
+            let mut st = Keccyak256Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });
-    g.bench_with_input("Keccak-p1600-12", &[0u8; INPUT], |b, block| {
+    g.bench_with_input("Keccyak128", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccakP1600_12Keyed::new(&[0u8; 32], None, None);
+            let mut st = Keccyak128Keyed::new(&[0u8; 32], None, None);
             st.seal(block)
         })
     });

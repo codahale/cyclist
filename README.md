@@ -2,7 +2,7 @@
 
 A Rust implementation of the Cyclist mode of permutation-based cryptography.
 
-Includes Xoodyak and several Keccak-_p_ based constructions.
+Includes Xoodyak and several Keccak-_p_ based constructions (affectionately called Keccyak).
 
 ## Benchmarks
 

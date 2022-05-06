@@ -2,11 +2,11 @@
 //!
 //! The three varieties of Cyclist schemes are:
 //!
-//! 1. [KeccakF1600Hash] and [KeccakF1600Keyed], which use the full Keccak-f\[1600\] permutation,
+//! 1. [KeccyakMaxHash] and [KeccyakMaxKeyed], which use the full Keccak-f\[1600\] permutation,
 //!    are parameterized to offer ~256-bit security with a very conservative design.
-//! 2. [KeccakP1600_14Hash] and [KeccakP1600_14Keyed], which use the 14-round Keccak-p\[1600,14\]
+//! 2. [Keccyak256Hash] and [Keccyak256Keyed], which use the 14-round Keccak-p\[1600,14\]
 //!    permutation, are parameterized to offer ~256-bit security with a performance-oriented design.
-//! 3. [KeccakP1600_12Hash] and [KeccakP1600_12Keyed], which use the 12-round Keccak-p\[1600,12\]
+//! 3. [Keccyak128Hash] and [Keccyak128Keyed], which use the 12-round Keccak-p\[1600,12\]
 //!    permutation, are parameterized to offer ~128-bit security with a performance-oriented design.
 //!
 //! Parameters were chosen based on the discussion of the
@@ -23,11 +23,11 @@ use crate::{CyclistHash, CyclistKeyed, Permutation};
 
 /// A Cyclist hash using Keccak-f\[1600\] and r=1088, offering 256-bit security and a very
 /// conservative design.
-pub type KeccakF1600Hash = CyclistHash<KeccakF1600, { 1600 / 8 }, { (1600 - 512) / 8 }>;
+pub type KeccyakMaxHash = CyclistHash<KeccakF1600, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
 /// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
 /// security and a very conservative design.
-pub type KeccakF1600Keyed = CyclistKeyed<
+pub type KeccyakMaxKeyed = CyclistKeyed<
     KeccakF1600,
     { 1600 / 8 },
     { (1600 - 64) / 8 },  // R_absorb=b-W
@@ -38,11 +38,11 @@ pub type KeccakF1600Keyed = CyclistKeyed<
 
 /// A Cyclist hash using Keccak-p\[1600,14\] and r=1088, offering 256-bit security and a
 /// performance-oriented design.
-pub type KeccakP1600_14Hash = CyclistHash<KeccakP1600_14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
+pub type Keccyak256Hash = CyclistHash<KeccakP1600_14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
 /// A keyed Cyclist using Keccak-p\[1600,14\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
 /// security and a performance-oriented design.
-pub type KeccakP1600_14Keyed = CyclistKeyed<
+pub type Keccyak256Keyed = CyclistKeyed<
     KeccakP1600_14,
     { 1600 / 8 },
     { (1600 - 64) / 8 },  // R_absorb=b-W
@@ -53,11 +53,11 @@ pub type KeccakP1600_14Keyed = CyclistKeyed<
 
 /// A Cyclist hash using Keccak-p\[1600,12\] and r=1344, offering 128-bit security and a
 /// performance-oriented design.
-pub type KeccakP1600_12Hash = CyclistHash<KeccakP1600_12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
+pub type Keccyak128Hash = CyclistHash<KeccakP1600_12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
 /// A keyed Cyclist using Keccak-p\[1600,12\] and r_absorb=1568/r_squeeze=1408, offering 128-bit
 /// security and a performance-oriented design.
-pub type KeccakP1600_12Keyed = CyclistKeyed<
+pub type Keccyak128Keyed = CyclistKeyed<
     KeccakP1600_12,
     { 1600 / 8 },
     { (1600 - 32) / 8 },  // R_absorb=b-W
@@ -1026,11 +1026,11 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let mut d = KeccakF1600Keyed::new(b"ok then", None, None);
+        let mut d = KeccyakMaxKeyed::new(b"ok then", None, None);
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = KeccakF1600Keyed::new(b"ok then", None, None);
+        let mut d = KeccyakMaxKeyed::new(b"ok then", None, None);
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);
