@@ -590,12 +590,23 @@ macro_rules! iter_rounds {
         $(
             double_round!(
                 $rc_a, $rc_b,
-                a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-                a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
-                b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
-                b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
-                d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
-                e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
+                a_ba, a_be, a_bi, a_bo, a_bu,
+                a_ga, a_ge, a_gi, a_go, a_gu,
+                a_ka, a_ke, a_ki, a_ko, a_ku,
+                a_ma, a_me, a_mi, a_mo, a_mu,
+                a_sa, a_se, a_si, a_so, a_su,
+                b_ba, b_be, b_bi, b_bo, b_bu,
+                b_ga, b_ge, b_gi, b_go, b_gu,
+                b_ka, b_ke, b_ki, b_ko, b_ku,
+                b_ma, b_me, b_mi, b_mo, b_mu,
+                b_sa, b_se, b_si, b_so, b_su,
+                c_a, c_e, c_i, c_o, c_u,
+                d_a, d_e, d_i,d_o, d_u,
+                e_ba, e_be, e_bi, e_bo, e_bu,
+                e_ga, e_ge, e_gi, e_go, e_gu,
+                e_ka, e_ke, e_ki, e_ko, e_ku,
+                e_ma, e_me, e_mi, e_mo, e_mu,
+                e_sa, e_se, e_si, e_so, e_su,
             );
         )*
         copy_to_state!(
