@@ -183,35 +183,6 @@ impl Permutation<200> for KeccakF1600 {
     }
 }
 
-const MAX_ROUNDS: usize = 24;
-
-const ROUND_KEYS: [u64; MAX_ROUNDS] = [
-    0x0000000000000001,
-    0x0000000000008082,
-    0x800000000000808a,
-    0x8000000080008000,
-    0x000000000000808b,
-    0x0000000080000001,
-    0x8000000080008081,
-    0x8000000000008009,
-    0x000000000000008a,
-    0x0000000000000088,
-    0x0000000080008009,
-    0x000000008000000a,
-    0x000000008000808b,
-    0x800000000000008b,
-    0x8000000000008089,
-    0x8000000000008003,
-    0x8000000000008002,
-    0x8000000000000080,
-    0x000000000000800a,
-    0x800000008000000a,
-    0x8000000080008081,
-    0x8000000000008080,
-    0x0000000080000001,
-    0x8000000080008008,
-];
-
 macro_rules! copy_from_state {
     (
         $lanes:ident,
@@ -323,7 +294,7 @@ macro_rules! copy_from_state {
 
 macro_rules! double_round {
     (
-        $i: ident,
+        $rc_a: tt, $rc_b: tt,
         $a_ba: ident, $a_be: ident, $a_bi: ident, $a_bo: ident, $a_bu: ident,
         $a_ga: ident, $a_ge: ident, $a_gi: ident, $a_go: ident, $a_gu: ident,
         $a_ka: ident, $a_ke: ident, $a_ki: ident, $a_ko: ident, $a_ku: ident,
@@ -358,8 +329,7 @@ macro_rules! double_round {
         $a_su ^= $d_u;
         $b_bu = $a_su.rotate_left(14);
         $e_ba = $b_ba ^ ((!$b_be) & $b_bi);
-        $e_ba ^= ROUND_KEYS[$i];
-        $i += 1;
+        $e_ba ^= $rc_a;
         $c_a = $e_ba;
         $e_be = $b_be ^ ((!$b_bi) & $b_bo);
         $c_e = $e_be;
@@ -465,8 +435,7 @@ macro_rules! double_round {
         $e_su ^= $d_u;
         $b_bu = $e_su.rotate_left(14);
         $a_ba = $b_ba ^ ((!$b_be) & $b_bi);
-        $a_ba ^= ROUND_KEYS[$i];
-        $i += 1;
+        $a_ba ^= $rc_b;
         $c_a = $a_ba;
         $a_be = $b_be ^ ((!$b_bi) & $b_bo);
         $c_e = $a_be;
@@ -596,33 +565,47 @@ macro_rules! copy_to_state {
     };
 }
 
-macro_rules! six_times {
-    ($e:block) => {
-        $e;
-        $e;
-        $e;
-        $e;
-        $e;
-        $e;
-    };
-}
-
-macro_rules! seven_times {
-    ($e:block) => {
-        $e;
-        $e;
-        $e;
-        $e;
-        $e;
-        $e;
-        $e;
-    };
-}
-
-macro_rules! twelve_times {
-    ($e:block) => {
-        six_times!($e);
-        six_times!($e);
+macro_rules! iter_rounds {
+    ($lanes: ident, $( ($rc_a:tt, $rc_b:tt)),*) => {
+        copy_from_state!(
+            $lanes,
+            a_ba, a_be, a_bi, a_bo, a_bu,
+            a_ga, a_ge, a_gi, a_go, a_gu,
+            a_ka, a_ke, a_ki,a_ko, a_ku,
+            a_ma, a_me, a_mi, a_mo, a_mu,
+            a_sa, a_se, a_si, a_so, a_su,
+            b_ba, b_be, b_bi, b_bo, b_bu,
+            b_ga, b_ge, b_gi, b_go, b_gu,
+            b_ka, b_ke, b_ki, b_ko, b_ku,
+            b_ma, b_me, b_mi, b_mo, b_mu,
+            b_sa, b_se, b_si, b_so, b_su,
+            c_a, c_e, c_i, c_o, c_u,
+            d_a, d_e, d_i, d_o, d_u,
+            e_ba, e_be, e_bi, e_bo, e_bu,
+            e_ga, e_ge, e_gi, e_go, e_gu,
+            e_ka, e_ke, e_ki, e_ko, e_ku,
+            e_ma, e_me, e_mi, e_mo, e_mu,
+            e_sa, e_se, e_si, e_so, e_su,
+        );
+        $(
+            double_round!(
+                $rc_a, $rc_b,
+                a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+                a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
+                b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
+                b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
+                d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
+                e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
+            );
+        )*
+        copy_to_state!(
+            $lanes,
+            a_ba, a_be, a_bi, a_bo, a_bu,
+            a_ga, a_ge, a_gi, a_go, a_gu,
+            a_ka, a_ke, a_ki,a_ko, a_ku,
+            a_ma, a_me, a_mi, a_mo, a_mu,
+            a_sa, a_se, a_si, a_so, a_su,
+        );
     };
 }
 
@@ -630,30 +613,14 @@ macro_rules! twelve_times {
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_p1600_12(lanes: &mut [u64; 25]) {
-    copy_from_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
-        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
-        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
-        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
-        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-    );
-
-    let mut i = 12;
-    six_times!({
-        double_round!(
-            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
-            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
-            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
-            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
-            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-        );
-    });
-
-    copy_to_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    iter_rounds!(
+        lanes,
+        (0x000000008000808b, 0x800000000000008b),
+        (0x8000000000008089, 0x8000000000008003),
+        (0x8000000000008002, 0x8000000000000080),
+        (0x000000000000800a, 0x800000008000000a),
+        (0x8000000080008081, 0x8000000000008080),
+        (0x0000000080000001, 0x8000000080008008)
     );
 }
 
@@ -661,30 +628,15 @@ fn keccak_p1600_12(lanes: &mut [u64; 25]) {
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_p1600_14(lanes: &mut [u64; 25]) {
-    copy_from_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
-        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
-        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
-        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
-        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-    );
-
-    let mut i = 10;
-    seven_times!({
-        double_round!(
-            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
-            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
-            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
-            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
-            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-        );
-    });
-
-    copy_to_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    iter_rounds!(
+        lanes,
+        (0x0000000080008009, 0x000000008000000a),
+        (0x000000008000808b, 0x800000000000008b),
+        (0x8000000000008089, 0x8000000000008003),
+        (0x8000000000008002, 0x8000000000000080),
+        (0x000000000000800a, 0x800000008000000a),
+        (0x8000000080008081, 0x8000000000008080),
+        (0x0000000080000001, 0x8000000080008008)
     );
 }
 
@@ -692,30 +644,20 @@ fn keccak_p1600_14(lanes: &mut [u64; 25]) {
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_f1600(lanes: &mut [u64; 25]) {
-    copy_from_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
-        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
-        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
-        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
-        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-    );
-
-    let mut i = 0;
-    twelve_times!({
-        double_round!(
-            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
-            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
-            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
-            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
-            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
-        );
-    });
-
-    copy_to_state!(
-        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
-        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    iter_rounds!(
+        lanes,
+        (0x0000000000000001, 0x0000000000008082),
+        (0x800000000000808a, 0x8000000080008000),
+        (0x000000000000808b, 0x0000000080000001),
+        (0x8000000080008081, 0x8000000000008009),
+        (0x000000000000008a, 0x0000000000000088),
+        (0x0000000080008009, 0x000000008000000a),
+        (0x000000008000808b, 0x800000000000008b),
+        (0x8000000000008089, 0x8000000000008003),
+        (0x8000000000008002, 0x8000000000000080),
+        (0x000000000000800a, 0x800000008000000a),
+        (0x8000000080008081, 0x8000000000008080),
+        (0x0000000080000001, 0x8000000080008008)
     );
 }
 
