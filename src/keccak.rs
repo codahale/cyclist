@@ -212,95 +212,135 @@ const ROUND_KEYS: [u64; MAX_ROUNDS] = [
     0x8000000080008008,
 ];
 
+macro_rules! copy_from_state {
+    (
+        $lanes:ident,
+        $a_ba: ident, $a_be: ident, $a_bi: ident, $a_bo: ident, $a_bu: ident,
+        $a_ga: ident, $a_ge: ident, $a_gi: ident, $a_go: ident, $a_gu: ident,
+        $a_ka: ident, $a_ke: ident, $a_ki: ident, $a_ko: ident, $a_ku: ident,
+        $a_ma: ident, $a_me: ident, $a_mi: ident, $a_mo: ident, $a_mu: ident,
+        $a_sa: ident, $a_se: ident, $a_si: ident, $a_so: ident, $a_su: ident,
+        $b_ba: ident, $b_be: ident, $b_bi: ident, $b_bo: ident, $b_bu: ident,
+        $b_ga: ident, $b_ge: ident, $b_gi: ident, $b_go: ident, $b_gu: ident,
+        $b_ka: ident, $b_ke: ident, $b_ki: ident, $b_ko: ident, $b_ku: ident,
+        $b_ma: ident, $b_me: ident, $b_mi: ident, $b_mo: ident, $b_mu: ident,
+        $b_sa: ident, $b_se: ident, $b_si: ident, $b_so: ident, $b_su: ident,
+        $c_a: ident, $c_e: ident, $c_i: ident, $c_o: ident, $c_u: ident,
+        $d_a: ident, $d_e: ident, $d_i: ident, $d_o: ident, $d_u: ident,
+        $e_ba: ident, $e_be: ident, $e_bi: ident, $e_bo: ident, $e_bu: ident,
+        $e_ga: ident, $e_ge: ident, $e_gi: ident, $e_go: ident, $e_gu: ident,
+        $e_ka: ident, $e_ke: ident, $e_ki: ident, $e_ko: ident, $e_ku: ident,
+        $e_ma: ident, $e_me: ident, $e_mi: ident, $e_mo: ident, $e_mu: ident,
+        $e_sa: ident, $e_se: ident, $e_si: ident, $e_so: ident, $e_su: ident,
+    ) => {
+        let mut $a_ba = $lanes[0];
+        let mut $a_be = $lanes[1];
+        let mut $a_bi = $lanes[2];
+        let mut $a_bo = $lanes[3];
+        let mut $a_bu = $lanes[4];
+        let mut $a_ga = $lanes[5];
+        let mut $a_ge = $lanes[6];
+        let mut $a_gi = $lanes[7];
+        let mut $a_go = $lanes[8];
+        let mut $a_gu = $lanes[9];
+        let mut $a_ka = $lanes[10];
+        let mut $a_ke = $lanes[11];
+        let mut $a_ki = $lanes[12];
+        let mut $a_ko = $lanes[13];
+        let mut $a_ku = $lanes[14];
+        let mut $a_ma = $lanes[15];
+        let mut $a_me = $lanes[16];
+        let mut $a_mi = $lanes[17];
+        let mut $a_mo = $lanes[18];
+        let mut $a_mu = $lanes[19];
+        let mut $a_sa = $lanes[20];
+        let mut $a_se = $lanes[21];
+        let mut $a_si = $lanes[22];
+        let mut $a_so = $lanes[23];
+        let mut $a_su = $lanes[24];
+        let mut $b_ba: u64;
+        let mut $b_be: u64;
+        let mut $b_bi: u64;
+        let mut $b_bo: u64;
+        let mut $b_bu: u64;
+        let mut $b_ga: u64;
+        let mut $b_ge: u64;
+        let mut $b_gi: u64;
+        let mut $b_go: u64;
+        let mut $b_gu: u64;
+        let mut $b_ka: u64;
+        let mut $b_ke: u64;
+        let mut $b_ki: u64;
+        let mut $b_ko: u64;
+        let mut $b_ku: u64;
+        let mut $b_ma: u64;
+        let mut $b_me: u64;
+        let mut $b_mi: u64;
+        let mut $b_mo: u64;
+        let mut $b_mu: u64;
+        let mut $b_sa: u64;
+        let mut $b_se: u64;
+        let mut $b_si: u64;
+        let mut $b_so: u64;
+        let mut $b_su: u64;
+        let mut $c_a = $a_ba ^ $a_ga ^ $a_ka ^ $a_ma ^ $a_sa;
+        let mut $c_e = $a_be ^ $a_ge ^ $a_ke ^ $a_me ^ $a_se;
+        let mut $c_i = $a_bi ^ $a_gi ^ $a_ki ^ $a_mi ^ $a_si;
+        let mut $c_o = $a_bo ^ $a_go ^ $a_ko ^ $a_mo ^ $a_so;
+        let mut $c_u = $a_bu ^ $a_gu ^ $a_ku ^ $a_mu ^ $a_su;
+        let mut $d_a: u64;
+        let mut $d_e: u64;
+        let mut $d_i: u64;
+        let mut $d_o: u64;
+        let mut $d_u: u64;
+        let mut $e_ba: u64;
+        let mut $e_be: u64;
+        let mut $e_bi: u64;
+        let mut $e_bo: u64;
+        let mut $e_bu: u64;
+        let mut $e_ga: u64;
+        let mut $e_ge: u64;
+        let mut $e_gi: u64;
+        let mut $e_go: u64;
+        let mut $e_gu: u64;
+        let mut $e_ka: u64;
+        let mut $e_ke: u64;
+        let mut $e_ki: u64;
+        let mut $e_ko: u64;
+        let mut $e_ku: u64;
+        let mut $e_ma: u64;
+        let mut $e_me: u64;
+        let mut $e_mi: u64;
+        let mut $e_mo: u64;
+        let mut $e_mu: u64;
+        let mut $e_sa: u64;
+        let mut $e_se: u64;
+        let mut $e_si: u64;
+        let mut $e_so: u64;
+        let mut $e_su: u64;
+    };
+}
+
 macro_rules! double_round {
     (
-    $i: ident,
-    $rc: ident,
-    $a_ba: ident,
-    $a_be: ident,
-    $a_bi: ident,
-    $a_bo: ident,
-    $a_bu: ident,
-    $a_ga: ident,
-    $a_ge: ident,
-    $a_gi: ident,
-    $a_go: ident,
-    $a_gu: ident,
-    $a_ka: ident,
-    $a_ke: ident,
-    $a_ki: ident,
-    $a_ko: ident,
-    $a_ku: ident,
-    $a_ma: ident,
-    $a_me: ident,
-    $a_mi: ident,
-    $a_mo: ident,
-    $a_mu: ident,
-    $a_sa: ident,
-    $a_se: ident,
-    $a_si: ident,
-    $a_so: ident,
-    $a_su: ident,
-    $b_ba: ident,
-    $b_be: ident,
-    $b_bi: ident,
-    $b_bo: ident,
-    $b_bu: ident,
-    $b_ga: ident,
-    $b_ge: ident,
-    $b_gi: ident,
-    $b_go: ident,
-    $b_gu: ident,
-    $b_ka: ident,
-    $b_ke: ident,
-    $b_ki: ident,
-    $b_ko: ident,
-    $b_ku: ident,
-    $b_ma: ident,
-    $b_me: ident,
-    $b_mi: ident,
-    $b_mo: ident,
-    $b_mu: ident,
-    $b_sa: ident,
-    $b_se: ident,
-    $b_si: ident,
-    $b_so: ident,
-    $b_su: ident,
-    $c_a: ident,
-    $c_e: ident,
-    $c_i: ident,
-    $c_o: ident,
-    $c_u: ident,
-    $d_a: ident,
-    $d_e: ident,
-    $d_i: ident,
-    $d_o: ident,
-    $d_u: ident,
-    $e_ba: ident,
-    $e_be: ident,
-    $e_bi: ident,
-    $e_bo: ident,
-    $e_bu: ident,
-    $e_ga: ident,
-    $e_ge: ident,
-    $e_gi: ident,
-    $e_go: ident,
-    $e_gu: ident,
-    $e_ka: ident,
-    $e_ke: ident,
-    $e_ki: ident,
-    $e_ko: ident,
-    $e_ku: ident,
-    $e_ma: ident,
-    $e_me: ident,
-    $e_mi: ident,
-    $e_mo: ident,
-    $e_mu: ident,
-    $e_sa: ident,
-    $e_se: ident,
-    $e_si: ident,
-    $e_so: ident,
-    $e_su: ident,
+        $i: ident, $rc: ident,
+        $a_ba: ident, $a_be: ident, $a_bi: ident, $a_bo: ident, $a_bu: ident,
+        $a_ga: ident, $a_ge: ident, $a_gi: ident, $a_go: ident, $a_gu: ident,
+        $a_ka: ident, $a_ke: ident, $a_ki: ident, $a_ko: ident, $a_ku: ident,
+        $a_ma: ident, $a_me: ident, $a_mi: ident, $a_mo: ident, $a_mu: ident,
+        $a_sa: ident, $a_se: ident, $a_si: ident, $a_so: ident, $a_su: ident,
+        $b_ba: ident, $b_be: ident, $b_bi: ident, $b_bo: ident, $b_bu: ident,
+        $b_ga: ident, $b_ge: ident, $b_gi: ident, $b_go: ident, $b_gu: ident,
+        $b_ka: ident, $b_ke: ident, $b_ki: ident, $b_ko: ident, $b_ku: ident,
+        $b_ma: ident, $b_me: ident, $b_mi: ident, $b_mo: ident, $b_mu: ident,
+        $b_sa: ident, $b_se: ident, $b_si: ident, $b_so: ident, $b_su: ident,
+        $c_a: ident, $c_e: ident, $c_i: ident, $c_o: ident, $c_u: ident,
+        $d_a: ident, $d_e: ident, $d_i: ident, $d_o: ident, $d_u: ident,
+        $e_ba: ident, $e_be: ident, $e_bi: ident, $e_bo: ident, $e_bu: ident,
+        $e_ga: ident, $e_ge: ident, $e_gi: ident, $e_go: ident, $e_gu: ident,
+        $e_ka: ident, $e_ke: ident, $e_ki: ident, $e_ko: ident, $e_ku: ident,
+        $e_ma: ident, $e_me: ident, $e_mi: ident, $e_mo: ident, $e_mu: ident,
+        $e_sa: ident, $e_se: ident, $e_si: ident, $e_so: ident, $e_su: ident,
     ) => {
         $d_a = $c_u ^ $c_e.rotate_left(1);
         $d_e = $c_a ^ $c_i.rotate_left(1);
@@ -519,6 +559,43 @@ macro_rules! double_round {
     };
 }
 
+macro_rules! copy_to_state {
+    (
+        $lanes:ident,
+        $a_ba: ident, $a_be: ident, $a_bi: ident, $a_bo: ident, $a_bu: ident,
+        $a_ga: ident, $a_ge: ident, $a_gi: ident, $a_go: ident, $a_gu: ident,
+        $a_ka: ident, $a_ke: ident, $a_ki: ident, $a_ko: ident, $a_ku: ident,
+        $a_ma: ident, $a_me: ident, $a_mi: ident, $a_mo: ident, $a_mu: ident,
+        $a_sa: ident, $a_se: ident, $a_si: ident, $a_so: ident, $a_su: ident,
+    ) => {
+        $lanes[0] = $a_ba;
+        $lanes[1] = $a_be;
+        $lanes[2] = $a_bi;
+        $lanes[3] = $a_bo;
+        $lanes[4] = $a_bu;
+        $lanes[5] = $a_ga;
+        $lanes[6] = $a_ge;
+        $lanes[7] = $a_gi;
+        $lanes[8] = $a_go;
+        $lanes[9] = $a_gu;
+        $lanes[10] = $a_ka;
+        $lanes[11] = $a_ke;
+        $lanes[12] = $a_ki;
+        $lanes[13] = $a_ko;
+        $lanes[14] = $a_ku;
+        $lanes[15] = $a_ma;
+        $lanes[16] = $a_me;
+        $lanes[17] = $a_mi;
+        $lanes[18] = $a_mo;
+        $lanes[19] = $a_mu;
+        $lanes[20] = $a_sa;
+        $lanes[21] = $a_se;
+        $lanes[22] = $a_si;
+        $lanes[23] = $a_so;
+        $lanes[24] = $a_su;
+    };
+}
+
 macro_rules! six_times {
     ($e:block) => {
         $e;
@@ -553,91 +630,14 @@ macro_rules! twelve_times {
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_p1600_12(lanes: &mut [u64; 25]) {
-    let mut a_ba = lanes[0];
-    let mut a_be = lanes[1];
-    let mut a_bi = lanes[2];
-    let mut a_bo = lanes[3];
-    let mut a_bu = lanes[4];
-    let mut a_ga = lanes[5];
-    let mut a_ge = lanes[6];
-    let mut a_gi = lanes[7];
-    let mut a_go = lanes[8];
-    let mut a_gu = lanes[9];
-    let mut a_ka = lanes[10];
-    let mut a_ke = lanes[11];
-    let mut a_ki = lanes[12];
-    let mut a_ko = lanes[13];
-    let mut a_ku = lanes[14];
-    let mut a_ma = lanes[15];
-    let mut a_me = lanes[16];
-    let mut a_mi = lanes[17];
-    let mut a_mo = lanes[18];
-    let mut a_mu = lanes[19];
-    let mut a_sa = lanes[20];
-    let mut a_se = lanes[21];
-    let mut a_si = lanes[22];
-    let mut a_so = lanes[23];
-    let mut a_su = lanes[24];
-    let mut b_ba: u64;
-    let mut b_be: u64;
-    let mut b_bi: u64;
-    let mut b_bo: u64;
-    let mut b_bu: u64;
-    let mut b_ga: u64;
-    let mut b_ge: u64;
-    let mut b_gi: u64;
-    let mut b_go: u64;
-    let mut b_gu: u64;
-    let mut b_ka: u64;
-    let mut b_ke: u64;
-    let mut b_ki: u64;
-    let mut b_ko: u64;
-    let mut b_ku: u64;
-    let mut b_ma: u64;
-    let mut b_me: u64;
-    let mut b_mi: u64;
-    let mut b_mo: u64;
-    let mut b_mu: u64;
-    let mut b_sa: u64;
-    let mut b_se: u64;
-    let mut b_si: u64;
-    let mut b_so: u64;
-    let mut b_su: u64;
-    let mut c_a = a_ba ^ a_ga ^ a_ka ^ a_ma ^ a_sa;
-    let mut c_e = a_be ^ a_ge ^ a_ke ^ a_me ^ a_se;
-    let mut c_i = a_bi ^ a_gi ^ a_ki ^ a_mi ^ a_si;
-    let mut c_o = a_bo ^ a_go ^ a_ko ^ a_mo ^ a_so;
-    let mut c_u = a_bu ^ a_gu ^ a_ku ^ a_mu ^ a_su;
-    let mut d_a: u64;
-    let mut d_e: u64;
-    let mut d_i: u64;
-    let mut d_o: u64;
-    let mut d_u: u64;
-    let mut e_ba: u64;
-    let mut e_be: u64;
-    let mut e_bi: u64;
-    let mut e_bo: u64;
-    let mut e_bu: u64;
-    let mut e_ga: u64;
-    let mut e_ge: u64;
-    let mut e_gi: u64;
-    let mut e_go: u64;
-    let mut e_gu: u64;
-    let mut e_ka: u64;
-    let mut e_ke: u64;
-    let mut e_ki: u64;
-    let mut e_ko: u64;
-    let mut e_ku: u64;
-    let mut e_ma: u64;
-    let mut e_me: u64;
-    let mut e_mi: u64;
-    let mut e_mo: u64;
-    let mut e_mu: u64;
-    let mut e_sa: u64;
-    let mut e_se: u64;
-    let mut e_si: u64;
-    let mut e_so: u64;
-    let mut e_su: u64;
+    copy_from_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
+        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
+        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
+        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
+        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
+    );
 
     let mut i = 12;
     six_times!({
@@ -652,122 +652,24 @@ fn keccak_p1600_12(lanes: &mut [u64; 25]) {
         );
     });
 
-    lanes[0] = a_ba;
-    lanes[1] = a_be;
-    lanes[2] = a_bi;
-    lanes[3] = a_bo;
-    lanes[4] = a_bu;
-    lanes[5] = a_ga;
-    lanes[6] = a_ge;
-    lanes[7] = a_gi;
-    lanes[8] = a_go;
-    lanes[9] = a_gu;
-    lanes[10] = a_ka;
-    lanes[11] = a_ke;
-    lanes[12] = a_ki;
-    lanes[13] = a_ko;
-    lanes[14] = a_ku;
-    lanes[15] = a_ma;
-    lanes[16] = a_me;
-    lanes[17] = a_mi;
-    lanes[18] = a_mo;
-    lanes[19] = a_mu;
-    lanes[20] = a_sa;
-    lanes[21] = a_se;
-    lanes[22] = a_si;
-    lanes[23] = a_so;
-    lanes[24] = a_su;
+    copy_to_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    );
 }
 
 /// A fully unrolled port of XKCP's `K1600-plain-64bits-ua` implementation of Keccak-p\[1600,14\].
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_p1600_14(lanes: &mut [u64; 25]) {
-    let mut a_ba = lanes[0];
-    let mut a_be = lanes[1];
-    let mut a_bi = lanes[2];
-    let mut a_bo = lanes[3];
-    let mut a_bu = lanes[4];
-    let mut a_ga = lanes[5];
-    let mut a_ge = lanes[6];
-    let mut a_gi = lanes[7];
-    let mut a_go = lanes[8];
-    let mut a_gu = lanes[9];
-    let mut a_ka = lanes[10];
-    let mut a_ke = lanes[11];
-    let mut a_ki = lanes[12];
-    let mut a_ko = lanes[13];
-    let mut a_ku = lanes[14];
-    let mut a_ma = lanes[15];
-    let mut a_me = lanes[16];
-    let mut a_mi = lanes[17];
-    let mut a_mo = lanes[18];
-    let mut a_mu = lanes[19];
-    let mut a_sa = lanes[20];
-    let mut a_se = lanes[21];
-    let mut a_si = lanes[22];
-    let mut a_so = lanes[23];
-    let mut a_su = lanes[24];
-    let mut b_ba: u64;
-    let mut b_be: u64;
-    let mut b_bi: u64;
-    let mut b_bo: u64;
-    let mut b_bu: u64;
-    let mut b_ga: u64;
-    let mut b_ge: u64;
-    let mut b_gi: u64;
-    let mut b_go: u64;
-    let mut b_gu: u64;
-    let mut b_ka: u64;
-    let mut b_ke: u64;
-    let mut b_ki: u64;
-    let mut b_ko: u64;
-    let mut b_ku: u64;
-    let mut b_ma: u64;
-    let mut b_me: u64;
-    let mut b_mi: u64;
-    let mut b_mo: u64;
-    let mut b_mu: u64;
-    let mut b_sa: u64;
-    let mut b_se: u64;
-    let mut b_si: u64;
-    let mut b_so: u64;
-    let mut b_su: u64;
-    let mut c_a = a_ba ^ a_ga ^ a_ka ^ a_ma ^ a_sa;
-    let mut c_e = a_be ^ a_ge ^ a_ke ^ a_me ^ a_se;
-    let mut c_i = a_bi ^ a_gi ^ a_ki ^ a_mi ^ a_si;
-    let mut c_o = a_bo ^ a_go ^ a_ko ^ a_mo ^ a_so;
-    let mut c_u = a_bu ^ a_gu ^ a_ku ^ a_mu ^ a_su;
-    let mut d_a: u64;
-    let mut d_e: u64;
-    let mut d_i: u64;
-    let mut d_o: u64;
-    let mut d_u: u64;
-    let mut e_ba: u64;
-    let mut e_be: u64;
-    let mut e_bi: u64;
-    let mut e_bo: u64;
-    let mut e_bu: u64;
-    let mut e_ga: u64;
-    let mut e_ge: u64;
-    let mut e_gi: u64;
-    let mut e_go: u64;
-    let mut e_gu: u64;
-    let mut e_ka: u64;
-    let mut e_ke: u64;
-    let mut e_ki: u64;
-    let mut e_ko: u64;
-    let mut e_ku: u64;
-    let mut e_ma: u64;
-    let mut e_me: u64;
-    let mut e_mi: u64;
-    let mut e_mo: u64;
-    let mut e_mu: u64;
-    let mut e_sa: u64;
-    let mut e_se: u64;
-    let mut e_si: u64;
-    let mut e_so: u64;
-    let mut e_su: u64;
+    copy_from_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
+        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
+        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
+        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
+        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
+    );
 
     let mut i = 10;
     seven_times!({
@@ -782,122 +684,24 @@ fn keccak_p1600_14(lanes: &mut [u64; 25]) {
         );
     });
 
-    lanes[0] = a_ba;
-    lanes[1] = a_be;
-    lanes[2] = a_bi;
-    lanes[3] = a_bo;
-    lanes[4] = a_bu;
-    lanes[5] = a_ga;
-    lanes[6] = a_ge;
-    lanes[7] = a_gi;
-    lanes[8] = a_go;
-    lanes[9] = a_gu;
-    lanes[10] = a_ka;
-    lanes[11] = a_ke;
-    lanes[12] = a_ki;
-    lanes[13] = a_ko;
-    lanes[14] = a_ku;
-    lanes[15] = a_ma;
-    lanes[16] = a_me;
-    lanes[17] = a_mi;
-    lanes[18] = a_mo;
-    lanes[19] = a_mu;
-    lanes[20] = a_sa;
-    lanes[21] = a_se;
-    lanes[22] = a_si;
-    lanes[23] = a_so;
-    lanes[24] = a_su;
+    copy_to_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    );
 }
 
 /// A fully unrolled port of XKCP's `K1600-plain-64bits-ua` implementation of Keccak-f\[1600\].
 #[inline(always)]
 #[allow(unused_assignments)]
 fn keccak_f1600(lanes: &mut [u64; 25]) {
-    let mut a_ba = lanes[0];
-    let mut a_be = lanes[1];
-    let mut a_bi = lanes[2];
-    let mut a_bo = lanes[3];
-    let mut a_bu = lanes[4];
-    let mut a_ga = lanes[5];
-    let mut a_ge = lanes[6];
-    let mut a_gi = lanes[7];
-    let mut a_go = lanes[8];
-    let mut a_gu = lanes[9];
-    let mut a_ka = lanes[10];
-    let mut a_ke = lanes[11];
-    let mut a_ki = lanes[12];
-    let mut a_ko = lanes[13];
-    let mut a_ku = lanes[14];
-    let mut a_ma = lanes[15];
-    let mut a_me = lanes[16];
-    let mut a_mi = lanes[17];
-    let mut a_mo = lanes[18];
-    let mut a_mu = lanes[19];
-    let mut a_sa = lanes[20];
-    let mut a_se = lanes[21];
-    let mut a_si = lanes[22];
-    let mut a_so = lanes[23];
-    let mut a_su = lanes[24];
-    let mut b_ba: u64;
-    let mut b_be: u64;
-    let mut b_bi: u64;
-    let mut b_bo: u64;
-    let mut b_bu: u64;
-    let mut b_ga: u64;
-    let mut b_ge: u64;
-    let mut b_gi: u64;
-    let mut b_go: u64;
-    let mut b_gu: u64;
-    let mut b_ka: u64;
-    let mut b_ke: u64;
-    let mut b_ki: u64;
-    let mut b_ko: u64;
-    let mut b_ku: u64;
-    let mut b_ma: u64;
-    let mut b_me: u64;
-    let mut b_mi: u64;
-    let mut b_mo: u64;
-    let mut b_mu: u64;
-    let mut b_sa: u64;
-    let mut b_se: u64;
-    let mut b_si: u64;
-    let mut b_so: u64;
-    let mut b_su: u64;
-    let mut c_a = a_ba ^ a_ga ^ a_ka ^ a_ma ^ a_sa;
-    let mut c_e = a_be ^ a_ge ^ a_ke ^ a_me ^ a_se;
-    let mut c_i = a_bi ^ a_gi ^ a_ki ^ a_mi ^ a_si;
-    let mut c_o = a_bo ^ a_go ^ a_ko ^ a_mo ^ a_so;
-    let mut c_u = a_bu ^ a_gu ^ a_ku ^ a_mu ^ a_su;
-    let mut d_a: u64;
-    let mut d_e: u64;
-    let mut d_i: u64;
-    let mut d_o: u64;
-    let mut d_u: u64;
-    let mut e_ba: u64;
-    let mut e_be: u64;
-    let mut e_bi: u64;
-    let mut e_bo: u64;
-    let mut e_bu: u64;
-    let mut e_ga: u64;
-    let mut e_ge: u64;
-    let mut e_gi: u64;
-    let mut e_go: u64;
-    let mut e_gu: u64;
-    let mut e_ka: u64;
-    let mut e_ke: u64;
-    let mut e_ki: u64;
-    let mut e_ko: u64;
-    let mut e_ku: u64;
-    let mut e_ma: u64;
-    let mut e_me: u64;
-    let mut e_mi: u64;
-    let mut e_mo: u64;
-    let mut e_mu: u64;
-    let mut e_sa: u64;
-    let mut e_se: u64;
-    let mut e_si: u64;
-    let mut e_so: u64;
-    let mut e_su: u64;
+    copy_from_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi, b_bo,
+        b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me, b_mi, b_mo,
+        b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i, d_o, d_u, e_ba,
+        e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki, e_ko, e_ku, e_ma,
+        e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
+    );
 
     let mut i = 0;
     twelve_times!({
@@ -912,31 +716,10 @@ fn keccak_f1600(lanes: &mut [u64; 25]) {
         );
     });
 
-    lanes[0] = a_ba;
-    lanes[1] = a_be;
-    lanes[2] = a_bi;
-    lanes[3] = a_bo;
-    lanes[4] = a_bu;
-    lanes[5] = a_ga;
-    lanes[6] = a_ge;
-    lanes[7] = a_gi;
-    lanes[8] = a_go;
-    lanes[9] = a_gu;
-    lanes[10] = a_ka;
-    lanes[11] = a_ke;
-    lanes[12] = a_ki;
-    lanes[13] = a_ko;
-    lanes[14] = a_ku;
-    lanes[15] = a_ma;
-    lanes[16] = a_me;
-    lanes[17] = a_mi;
-    lanes[18] = a_mo;
-    lanes[19] = a_mu;
-    lanes[20] = a_sa;
-    lanes[21] = a_se;
-    lanes[22] = a_si;
-    lanes[23] = a_so;
-    lanes[24] = a_su;
+    copy_to_state!(
+        lanes, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+        a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su,
+    );
 }
 
 #[cfg(test)]
