@@ -4,21 +4,10 @@ A Rust implementation of the Cyclist mode of permutation-based cryptography.
 
 Includes Xoodyak and several Keccak-_p_ based constructions (affectionately called Keccyak).
 
-## Benchmarks
+## License
 
-All produced on my M1 Air.
-Comparisons here are to fairly generic 64-bit implementations, no bitslicing or vectorization.
+Copyright © 2021-2022 Coda Hale, Frank Denis
 
-### Permutations
+(Some portions adapted from `rust-xoodyak`.)
 
-![A violin plot of permutation runtimes.](permutations.svg)
-
-### Hashing (100KiB Input)
-
-Hashing 100KiB blocks:
-
-![A violin plot of hashing runtimes.](hashes.svg)
-
-### Authenticated Encryption (100KiB Input)
-
-![A violin plot of AEAD runtimes.](aeads.svg)
+Distributed under the MIT License.
