@@ -17,6 +17,7 @@ aead = "0.4.3"
 aes-gcm = "0.9.4"
 chacha20poly1305 = "0.10.0-pre"
 criterion = { version = "0.3.5", features = ["html_reports"] }
+keccak = "0.1.0"
 sha2 = "0.10.2"
 sha3 = "0.10.1"
 strobe-rs = "0.7.1"
