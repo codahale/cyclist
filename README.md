@@ -6,7 +6,7 @@ Includes Xoodyak and several Keccak-_p_ based constructions (affectionately call
 
 ## License
 
-Copyright © 2021-2022 Coda Hale, Frank Denis
+Copyright © 2020-2022 Coda Hale, Frank Denis
 
 (Some portions adapted from `rust-xoodyak`.)
 
