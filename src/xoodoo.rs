@@ -19,42 +19,36 @@ pub type XoodyakKeyed = CyclistKeyed<
     16,
 >;
 
-/// The full Xoodoo permutation with 12 rounds.
-pub type Xoodoo = XoodooP<12>;
-
-/// The reduced Xoodoo\[6\] permutation with 6 rounds.
-pub type Xoodoo6 = XoodooP<6>;
-
 /// The generic Xoodoo-p permutation, parameterized with the number of rounds.
 #[derive(Clone)]
 #[repr(align(4))]
-pub struct XoodooP<const R: usize>([u8; 48]);
+pub struct Xoodoo([u8; 48]);
 
-impl<const R: usize> Default for XoodooP<R> {
+impl Default for Xoodoo {
     fn default() -> Self {
-        XoodooP([0u8; 48])
+        Xoodoo([0u8; 48])
     }
 }
 
-impl<const R: usize> AsRef<[u8; 48]> for XoodooP<R> {
+impl AsRef<[u8; 48]> for Xoodoo {
     fn as_ref(&self) -> &[u8; 48] {
         &self.0
     }
 }
 
-impl<const R: usize> AsMut<[u8; 48]> for XoodooP<R> {
+impl AsMut<[u8; 48]> for Xoodoo {
     fn as_mut(&mut self) -> &mut [u8; 48] {
         &mut self.0
     }
 }
 
-impl<const R: usize> Zeroize for XoodooP<R> {
+impl Zeroize for Xoodoo {
     fn zeroize(&mut self) {
         self.0.zeroize()
     }
 }
 
-impl<const R: usize> Permutation<48> for XoodooP<R> {
+impl Permutation<48> for Xoodoo {
     #[inline(always)]
     fn permute(&mut self) {
         // Load state into lanes.
@@ -62,7 +56,7 @@ impl<const R: usize> Permutation<48> for XoodooP<R> {
         LittleEndian::read_u32_into(&self.0, &mut st);
 
         // Perform the pemutation.
-        xoodoo_p::xoodoo::<R>(&mut st);
+        xoodoo_p::xoodoo::<{ xoodoo_p::MAX_ROUNDS }>(&mut st);
 
         // Load lanes into state.
         LittleEndian::write_u32_into(&st, &mut self.0);

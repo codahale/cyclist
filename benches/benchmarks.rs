@@ -10,7 +10,7 @@ use cyclist::keccak::{
     KeccakF1600, KeccakP1600_12, KeccakP1600_14, Keccyak128Hash, Keccyak128Keyed, Keccyak256Hash,
     Keccyak256Keyed, KeccyakMaxHash, KeccyakMaxKeyed,
 };
-use cyclist::xoodoo::{Xoodoo, Xoodoo6, XoodyakHash, XoodyakKeyed};
+use cyclist::xoodoo::{Xoodoo, XoodyakHash, XoodyakKeyed};
 use cyclist::{Cyclist, Permutation};
 
 const INPUT: usize = 100 * 1024;
@@ -202,10 +202,6 @@ fn permutation_benchmarks(c: &mut Criterion) {
     g.throughput(Throughput::Bytes(48));
     g.bench_function("Xoodoo", |b| {
         let mut state = Xoodoo::default();
-        b.iter(|| state.permute())
-    });
-    g.bench_function("Xoodoo-6", |b| {
-        let mut state = Xoodoo6::default();
         b.iter(|| state.permute())
     });
     g.finish();
