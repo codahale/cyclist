@@ -5,7 +5,7 @@
 //!
 //! ```rust
 //! use cyclist::Cyclist;
-//! use cyclist::xoodoo::XoodyakHash;
+//! use cyclist::xoodyak::XoodyakHash;
 //!
 //! let mut hash = XoodyakHash::default();
 //! hash.absorb(b"This is an input message!");
@@ -18,7 +18,7 @@
 //!
 //! ```rust
 //! use cyclist::Cyclist;
-//! use cyclist::xoodoo::XoodyakKeyed;
+//! use cyclist::xoodyak::XoodyakKeyed;
 //!
 //! let mut mac = XoodyakKeyed::new(b"This is a secret key!", None, None);
 //! mac.absorb(b"This is an input message!");
@@ -31,7 +31,7 @@
 //!
 //! ```rust
 //! use cyclist::Cyclist;
-//! use cyclist::xoodoo::XoodyakKeyed;
+//! use cyclist::xoodyak::XoodyakKeyed;
 //!
 //! let mut aead = XoodyakKeyed::new(b"This is a secret key!", Some(b"This is a nonce!"), None);
 //! aead.absorb(b"This is authenticated data!");
@@ -47,9 +47,9 @@ use subtle::CtOption;
 use zeroize::Zeroize;
 
 #[cfg(feature = "keccyak")]
-pub mod keccak;
+pub mod keccyak;
 #[cfg(feature = "xoodyak")]
-pub mod xoodoo;
+pub mod xoodyak;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.
 pub trait Permutation<const WIDTH: usize>:
@@ -551,7 +551,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::xoodoo::XoodyakHash;
+    use crate::xoodyak::XoodyakHash;
 
     use super::*;
 

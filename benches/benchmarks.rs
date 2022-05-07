@@ -6,11 +6,11 @@ use sha2::{Digest, Sha256, Sha512};
 use sha3::Sha3_512;
 use strobe_rs::{SecParam, Strobe};
 
-use cyclist::keccak::{
+use cyclist::keccyak::{
     KeccakF1600, KeccakP1600_12, KeccakP1600_14, Keccyak128Hash, Keccyak128Keyed, Keccyak256Hash,
     Keccyak256Keyed, KeccyakMaxHash, KeccyakMaxKeyed,
 };
-use cyclist::xoodoo::{Xoodoo, XoodyakHash, XoodyakKeyed};
+use cyclist::xoodyak::{Xoodoo, XoodyakHash, XoodyakKeyed};
 use cyclist::{Cyclist, Permutation};
 
 const INPUT: usize = 100 * 1024;

@@ -1,6 +1,6 @@
-//! A collection of Keccak-_p_ based permutations and Cyclist schemes.
+//! A collection of Cyclist/Keccak-_p_ (aka Keccyak) schemes.
 //!
-//! The three varieties of Cyclist schemes are:
+//! The three schemes are:
 //!
 //! 1. [KeccyakMaxHash] and [KeccyakMaxKeyed], which use the full Keccak-f\[1600\] permutation,
 //!    are parameterized to offer ~256-bit security with a very conservative design.
@@ -15,6 +15,9 @@
 //! Specifically, hash rates are calculated as `b-2k` for `k` bits of security, keyed absorb rates
 //! are calculated as `b-W` where `W` is 64 bits for ~256-bit security and 32 bits for ~128-bit
 //! security, and keyed squeeze rates are calculated as `b-k` for `k` bits of security.
+//!
+//! **N.B:** This is not a published configuration for Cyclist and there are no official security
+//! analyses or specifications.
 
 use byteorder::{ByteOrder, LittleEndian};
 use zeroize::Zeroize;
