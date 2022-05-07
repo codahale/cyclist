@@ -323,7 +323,7 @@ macro_rules! copy_from_state {
 
 macro_rules! double_round {
     (
-        $i: ident, $rc: ident,
+        $i: ident,
         $a_ba: ident, $a_be: ident, $a_bi: ident, $a_bo: ident, $a_bu: ident,
         $a_ga: ident, $a_ge: ident, $a_gi: ident, $a_go: ident, $a_gu: ident,
         $a_ka: ident, $a_ke: ident, $a_ki: ident, $a_ko: ident, $a_ku: ident,
@@ -358,7 +358,7 @@ macro_rules! double_round {
         $a_su ^= $d_u;
         $b_bu = $a_su.rotate_left(14);
         $e_ba = $b_ba ^ ((!$b_be) & $b_bi);
-        $e_ba ^= $rc[$i];
+        $e_ba ^= ROUND_KEYS[$i];
         $i += 1;
         $c_a = $e_ba;
         $e_be = $b_be ^ ((!$b_bi) & $b_bo);
@@ -465,7 +465,7 @@ macro_rules! double_round {
         $e_su ^= $d_u;
         $b_bu = $e_su.rotate_left(14);
         $a_ba = $b_ba ^ ((!$b_be) & $b_bi);
-        $a_ba ^= $rc[$i];
+        $a_ba ^= ROUND_KEYS[$i];
         $i += 1;
         $c_a = $a_ba;
         $a_be = $b_be ^ ((!$b_bi) & $b_bo);
@@ -642,13 +642,12 @@ fn keccak_p1600_12(lanes: &mut [u64; 25]) {
     let mut i = 12;
     six_times!({
         double_round!(
-            i, ROUND_KEYS, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke,
-            a_ki, a_ko, a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba,
-            b_be, b_bi, b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku,
-            b_ma, b_me, b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u,
-            d_a, d_e, d_i, d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu,
-            e_ka, e_ke, e_ki, e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so,
-            e_su,
+            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
+            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
+            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
+            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
+            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
         );
     });
 
@@ -674,13 +673,12 @@ fn keccak_p1600_14(lanes: &mut [u64; 25]) {
     let mut i = 10;
     seven_times!({
         double_round!(
-            i, ROUND_KEYS, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke,
-            a_ki, a_ko, a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba,
-            b_be, b_bi, b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku,
-            b_ma, b_me, b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u,
-            d_a, d_e, d_i, d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu,
-            e_ka, e_ke, e_ki, e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so,
-            e_su,
+            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
+            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
+            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
+            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
+            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
         );
     });
 
@@ -706,13 +704,12 @@ fn keccak_f1600(lanes: &mut [u64; 25]) {
     let mut i = 0;
     twelve_times!({
         double_round!(
-            i, ROUND_KEYS, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke,
-            a_ki, a_ko, a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba,
-            b_be, b_bi, b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku,
-            b_ma, b_me, b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u,
-            d_a, d_e, d_i, d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu,
-            e_ka, e_ke, e_ki, e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so,
-            e_su,
+            i, a_ba, a_be, a_bi, a_bo, a_bu, a_ga, a_ge, a_gi, a_go, a_gu, a_ka, a_ke, a_ki, a_ko,
+            a_ku, a_ma, a_me, a_mi, a_mo, a_mu, a_sa, a_se, a_si, a_so, a_su, b_ba, b_be, b_bi,
+            b_bo, b_bu, b_ga, b_ge, b_gi, b_go, b_gu, b_ka, b_ke, b_ki, b_ko, b_ku, b_ma, b_me,
+            b_mi, b_mo, b_mu, b_sa, b_se, b_si, b_so, b_su, c_a, c_e, c_i, c_o, c_u, d_a, d_e, d_i,
+            d_o, d_u, e_ba, e_be, e_bi, e_bo, e_bu, e_ga, e_ge, e_gi, e_go, e_gu, e_ka, e_ke, e_ki,
+            e_ko, e_ku, e_ma, e_me, e_mi, e_mo, e_mu, e_sa, e_se, e_si, e_so, e_su,
         );
     });
 
