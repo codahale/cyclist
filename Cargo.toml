@@ -4,14 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-default = ["std"]
+default = ["std", "keccyak", "xoodyak"]
 std = ["subtle/std"]
+keccyak = ["keccak-p"]
+xoodyak = ["xoodoo-p"]
 
 [dependencies]
 byteorder = "1.4.3"
-keccak-p = "0.1.0"
+keccak-p = { version = "0.1.0", optional = true }
 subtle = "2.4.1"
-xoodoo-p = "0.1.0"
+xoodoo-p = { version = "0.1.0", optional = true }
 zeroize = "1.5.5"
 
 [dev-dependencies]

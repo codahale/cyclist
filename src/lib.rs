@@ -46,7 +46,9 @@ use subtle::ConstantTimeEq;
 use subtle::CtOption;
 use zeroize::Zeroize;
 
+#[cfg(feature = "keccyak")]
 pub mod keccak;
+#[cfg(feature = "xoodyak")]
 pub mod xoodoo;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.
