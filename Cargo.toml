@@ -10,7 +10,7 @@ documentation = "https://docs.rs/cyclist/"
 keywords = ["crypto", "cyclist", "xoodyak", "duplex", "no-std"]
 categories = ["cryptography", "no-std"]
 readme = "README.md"
-include = ["src/**/*", "LICENSE", "README.md"]
+include = ["src/**/*", "benches/**/*", "LICENSE", "README.md"]
 
 [features]
 default = ["std", "keccyak", "xoodyak"]
