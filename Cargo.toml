@@ -5,7 +5,7 @@ edition = "2021"
 
 [features]
 default = ["std", "keccyak", "xoodyak"]
-std = ["subtle/std", "zeroize/std"]
+std = ["byteorder/std", "subtle/std", "zeroize/std"]
 keccyak = ["keccak-p"]
 xoodyak = ["xoodoo-p"]
 
