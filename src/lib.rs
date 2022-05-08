@@ -75,7 +75,7 @@ pub trait Permutation<const WIDTH: usize>:
         out.copy_from_slice(&self.as_ref()[..out.len()]);
     }
 
-    /// Permute the given state.
+    /// Permutes the given state.
     fn permute(&mut self);
 }
 
@@ -87,26 +87,28 @@ pub trait Cyclist {
     /// Returns the number of bytes which can be squeezed before the state is permuted.
     fn squeeze_rate(&self) -> usize;
 
-    /// Absorb the given slice.
+    /// Absorbs the given slice.
     fn absorb(&mut self, bin: &[u8]);
 
-    /// Extend a previous absorb operation with the given slice. Previous absorb operation must have
-    /// been done with a slice whose length is evenly divisible by the absorb rate in order for the
-    /// two operations to be commutative.
+    /// Extends a previous absorb operation with the given slice.
+    ///
+    /// The previous absorb operation must have been done with a slice whose length is evenly
+    /// divisible by the absorb rate in order for the two operations to be commutative.
     fn absorb_more(&mut self, bin: &[u8]);
 
     /// Fill the given mutable slice with squeezed data.
     fn squeeze_mut(&mut self, out: &mut [u8]);
 
-    /// Extend a previous squeeze operation with the given mutable slice. Previous squeeze operation
-    /// must have produced a number of bytes that is evenly divisible by the squeeze rate in order
-    /// for the two operations to be commutative.
+    /// Extends a previous squeeze operation with the given mutable slice.
+    ///
+    /// The previous squeeze operation must have produced a number of bytes that is evenly divisible
+    /// by the squeeze rate in order for the two operations to be commutative.
     fn squeeze_more_mut(&mut self, out: &mut [u8]);
 
-    /// Fill the given mutable slice with squeezed key data.
+    /// Fills the given mutable slice with squeezed key data.
     fn squeeze_key_mut(&mut self, out: &mut [u8]);
 
-    /// Return `n` bytes of squeezed data.
+    /// Returns `n` bytes of squeezed data.
     #[cfg(feature = "std")]
     fn squeeze(&mut self, n: usize) -> Vec<u8> {
         let mut out = vec![0u8; n];
@@ -114,7 +116,10 @@ pub trait Cyclist {
         out
     }
 
-    /// Extend a previous squeeze operation with an additional `n` bytes of squeezed data.
+    /// Extends a previous squeeze operation with an additional `n` bytes of squeezed data.
+    ///
+    /// The previous squeeze operation must have produced a number of bytes that is evenly divisible
+    /// by the squeeze rate in order for the two operations to be commutative.
     #[cfg(feature = "std")]
     fn squeeze_more(&mut self, n: usize) -> Vec<u8> {
         let mut out = vec![0u8; n];
@@ -122,7 +127,7 @@ pub trait Cyclist {
         out
     }
 
-    /// Return `n` bytes of squeezed key data.
+    /// Returns `n` bytes of squeezed key data.
     #[cfg(feature = "std")]
     fn squeeze_key(&mut self, n: usize) -> Vec<u8> {
         let mut out = vec![0u8; n];
@@ -203,7 +208,7 @@ where
         }
     }
 
-    /// Initiate the UP mode with a block of data and a domain separator.
+    /// Initiates the UP mode with an optional block of data and a domain separator.
     #[inline(always)]
     fn up(&mut self, out: Option<&mut [u8]>, cu: u8) {
         debug_assert!(out.as_ref().map(|x| x.len()).unwrap_or(0) <= SQUEEZE_RATE);
@@ -217,7 +222,7 @@ where
         }
     }
 
-    /// Initiate the DOWN mode with a block of data and a domain separator.
+    /// Initiates the DOWN mode with an optional block of data and a domain separator.
     #[inline(always)]
     fn down(&mut self, bin: Option<&[u8]>, cd: u8) {
         debug_assert!(bin.as_ref().map(|x| x.len()).unwrap_or(0) <= ABSORB_RATE);
@@ -232,7 +237,7 @@ where
         self.up = false;
     }
 
-    /// Absorb a block of data at the given rate with the given DOWN mode domain separator.
+    /// Absorbs a slice of data at the given rate with the given DOWN mode domain separator.
     #[inline]
     fn absorb_any(&mut self, bin: &[u8], rate: usize, cd: u8) {
         let mut chunks_it = bin.chunks(rate);
@@ -246,7 +251,7 @@ where
         }
     }
 
-    /// Squeeze a block of data with the given UP mode domain separator.
+    /// Squeezes into a slice of data with the given UP mode domain separator.
     #[inline]
     fn squeeze_any(&mut self, out: &mut [u8], cu: u8) {
         let mut chunks_it = out.chunks_mut(SQUEEZE_RATE);
@@ -257,13 +262,13 @@ where
         }
     }
 
-    /// Absorb the given slice of data.
+    /// Absorbs the given slice of data.
     #[inline(always)]
     fn absorb(&mut self, bin: &[u8]) {
         self.absorb_any(bin, ABSORB_RATE, 0x03);
     }
 
-    /// Extend a previous absorb with more data.
+    /// Extends a previous absorb with more data.
     #[inline(always)]
     fn absorb_more(&mut self, bin: &[u8]) {
         for chunk in bin.chunks(ABSORB_RATE) {
@@ -272,13 +277,13 @@ where
         }
     }
 
-    /// Fill the given mutable slice with squeezed data.
+    /// Fills the given mutable slice with squeezed data.
     #[inline(always)]
     fn squeeze_mut(&mut self, out: &mut [u8]) {
         self.squeeze_any(out, 0x40);
     }
 
-    /// Extend a previous squeeze with more data.
+    /// Extends a previous squeeze with more data.
     #[inline(always)]
     fn squeeze_more_mut(&mut self, out: &mut [u8]) {
         for chunk in out.chunks_mut(SQUEEZE_RATE) {
@@ -287,15 +292,15 @@ where
         }
     }
 
-    /// Fill the given mutable slice with squeezed key data.
+    /// Fills the given mutable slice with squeezed key data.
     #[inline(always)]
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.squeeze_any(out, 0x20);
     }
 }
 
-/// A Cyclist object in hash mode. Parameterized with the permutation algorithm, the
-/// permutation width, and the hash rate.
+/// A Cyclist object in hash mode. Parameterized with the permutation algorithm, the permutation
+/// width, and the hash rate.
 #[derive(Clone, Debug)]
 pub struct CyclistHash<P, const WIDTH: usize, const HASH_RATE: usize>
 where
@@ -348,9 +353,9 @@ where
     }
 }
 
-/// A Cyclist object in keyed mode. Parameterized with the permutation algorithm, the
-/// permutation width, the absorb rate, the squeeze rate, the ratchet rate, and the length of
-/// authentication tags.
+/// A Cyclist object in keyed mode. Parameterized with the permutation algorithm, the permutation
+/// width, the absorb rate, the squeeze rate, the ratchet rate, and the length of authentication
+/// tags.
 #[derive(Clone, Debug)]
 pub struct CyclistKeyed<
     P,
@@ -415,7 +420,7 @@ where
         CyclistKeyed { core }
     }
 
-    /// Encrypt the given mutable slice in place.
+    /// Encrypts the given mutable slice in place.
     pub fn encrypt_mut(&mut self, in_out: &mut [u8]) {
         let mut tmp = [0u8; SQUEEZE_RATE];
         let mut cu = 0x80;
@@ -429,7 +434,7 @@ where
         }
     }
 
-    /// Return an encrypted copy of the given slice.
+    /// Returns an encrypted copy of the given slice.
     #[cfg(feature = "std")]
     pub fn encrypt(&mut self, bin: &[u8]) -> Vec<u8> {
         let mut c = bin.to_vec();
@@ -437,7 +442,7 @@ where
         c
     }
 
-    /// Decrypt the given mutable slice in place.
+    /// Decrypts the given mutable slice in place.
     pub fn decrypt_mut(&mut self, in_out: &mut [u8]) {
         let mut tmp = [0u8; SQUEEZE_RATE];
         let mut cu = 0x80;
@@ -451,7 +456,7 @@ where
         }
     }
 
-    /// Return an decrypted copy of the given slice.
+    /// Returns an decrypted copy of the given slice.
     #[cfg(feature = "std")]
     pub fn decrypt(&mut self, bin: &[u8]) -> Vec<u8> {
         let mut c = bin.to_vec();
@@ -459,23 +464,25 @@ where
         c
     }
 
-    /// Ratchet the state, providing forward secrecy.
+    /// Ratchets the state, providing forward secrecy.
     pub fn ratchet(&mut self) {
         let mut rolled_key = [0u8; RATCHET_RATE];
         self.core.squeeze_any(&mut rolled_key, 0x10);
         self.core.absorb_any(&rolled_key, RATCHET_RATE, 0x00);
     }
 
-    /// Seal the given mutable slice in place. The last `TAG_LEN` bytes of the slice will be
-    /// overwritten with the authentication tag.
+    /// Seals the given mutable slice in place.
+    ///
+    /// The last `TAG_LEN` bytes of the slice will be overwritten with the authentication tag.
     pub fn seal_mut(&mut self, in_out: &mut [u8]) {
         let (c, t) = in_out.split_at_mut(in_out.len() - TAG_LEN);
         self.encrypt_mut(c);
         self.squeeze_mut(t);
     }
 
-    /// Returns a sealed copy of the given slice. The returned [Vec] will be `TAG_LEN` bytes longer
-    /// than `bin`.
+    /// Returns a sealed copy of the given slice.
+    ///
+    /// The returned [Vec] will be `TAG_LEN` bytes longer than `bin`.
     #[cfg(feature = "std")]
     pub fn seal(&mut self, bin: &[u8]) -> Vec<u8> {
         let mut c = vec![0u8; bin.len() + TAG_LEN];

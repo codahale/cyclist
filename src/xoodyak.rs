@@ -19,7 +19,7 @@ pub type XoodyakKeyed = CyclistKeyed<
     16,
 >;
 
-/// The generic Xoodoo-p permutation, parameterized with the number of rounds.
+/// The standard Xoodoo\[12\] permutation.
 #[derive(Clone)]
 #[repr(align(4))]
 pub struct Xoodoo([u8; 48]);
@@ -55,7 +55,7 @@ impl Permutation<48> for Xoodoo {
         let mut st = [0u32; 12];
         LittleEndian::read_u32_into(&self.0, &mut st);
 
-        // Perform the pemutation.
+        // Perform the permutation.
         xoodoo_p::xoodoo::<{ xoodoo_p::MAX_ROUNDS }>(&mut st);
 
         // Load lanes into state.

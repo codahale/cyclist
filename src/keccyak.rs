@@ -24,11 +24,11 @@ use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
-/// A Cyclist hash using Keccak-f\[1600\] and r=1088, offering 256-bit security and a very
+/// A Cyclist hash using Keccak-f\[1600\] and `r=1088`, offering 256-bit security and a very
 /// conservative design.
 pub type KeccyakMaxHash = CyclistHash<KeccakF1600, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
-/// A keyed Cyclist using Keccak-f\[1600\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
+/// A keyed Cyclist using Keccak-f\[1600\] and `r_absorb=1536`/`r_squeeze=1344`, offering 256-bit
 /// security and a very conservative design.
 pub type KeccyakMaxKeyed = CyclistKeyed<
     KeccakF1600,
@@ -39,11 +39,11 @@ pub type KeccyakMaxKeyed = CyclistKeyed<
     32,
 >;
 
-/// A Cyclist hash using Keccak-p\[1600,14\] and r=1088, offering 256-bit security and a
+/// A Cyclist hash using Keccak-p\[1600,14\] and `r=1088`, offering 256-bit security and a
 /// performance-oriented design.
 pub type Keccyak256Hash = CyclistHash<KeccakP1600_14, { 1600 / 8 }, { (1600 - 512) / 8 }>;
 
-/// A keyed Cyclist using Keccak-p\[1600,14\] and r_absorb=1536/r_squeeze=1344, offering 256-bit
+/// A keyed Cyclist using Keccak-p\[1600,14\] and `r_absorb=1536`/`r_squeeze=1344`, offering 256-bit
 /// security and a performance-oriented design.
 pub type Keccyak256Keyed = CyclistKeyed<
     KeccakP1600_14,
@@ -54,11 +54,11 @@ pub type Keccyak256Keyed = CyclistKeyed<
     32,
 >;
 
-/// A Cyclist hash using Keccak-p\[1600,12\] and r=1344, offering 128-bit security and a
+/// A Cyclist hash using Keccak-p\[1600,12\] and `r=1344`, offering 128-bit security and a
 /// performance-oriented design.
 pub type Keccyak128Hash = CyclistHash<KeccakP1600_12, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
-/// A keyed Cyclist using Keccak-p\[1600,12\] and r_absorb=1568/r_squeeze=1408, offering 128-bit
+/// A keyed Cyclist using Keccak-p\[1600,12\] and `r_absorb=1568`/`r_squeeze=1408`, offering 128-bit
 /// security and a performance-oriented design.
 pub type Keccyak128Keyed = CyclistKeyed<
     KeccakP1600_12,
@@ -147,7 +147,7 @@ impl Permutation<200> for KeccakP1600_14 {
     }
 }
 
-/// The full Keccak-f\[1600\] permutation with 24 rounds.
+/// The Keccak-f\[1600\] permutation from the SHA-3 hash algorithm.
 #[derive(Clone)]
 #[repr(align(8))]
 pub struct KeccakF1600([u8; 200]);
