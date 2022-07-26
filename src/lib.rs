@@ -381,7 +381,7 @@ impl<
 where
     P: Permutation<WIDTH>,
 {
-    /// Creates a new [CyclistKeyed] instance with the given key, optional nonce, and optional
+    /// Creates a new [`CyclistKeyed`] instance with the given key, optional nonce, and optional
     /// counter.
     pub fn new(key: &[u8], nonce: Option<&[u8]>, counter: Option<&[u8]>) -> Self {
         let mut core =

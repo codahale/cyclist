@@ -2,11 +2,11 @@
 //!
 //! The three schemes are:
 //!
-//! 1. [KeccyakMaxHash] and [KeccyakMaxKeyed], which use the full Keccak-f\[1600\] permutation,
+//! 1. [`KeccyakMaxHash`] and [`KeccyakMaxKeyed`], which use the full Keccak-f\[1600\] permutation,
 //!    are parameterized to offer ~256-bit security with a very conservative design.
-//! 2. [Keccyak256Hash] and [Keccyak256Keyed], which use the 14-round Keccak-p\[1600,14\]
+//! 2. [`Keccyak256Hash`] and [`Keccyak256Keyed`], which use the 14-round Keccak-p\[1600,14\]
 //!    permutation, are parameterized to offer ~256-bit security with a performance-oriented design.
-//! 3. [Keccyak128Hash] and [Keccyak128Keyed], which use the 12-round Keccak-p\[1600,12\]
+//! 3. [`Keccyak128Hash`] and [`Keccyak128Keyed`], which use the 12-round Keccak-p\[1600,12\]
 //!    permutation, are parameterized to offer ~128-bit security with a performance-oriented design.
 //!
 //! Parameters were chosen based on the discussion of the
