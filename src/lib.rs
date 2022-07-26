@@ -183,7 +183,7 @@ where
     P: Permutation<WIDTH>,
 {
     fn drop(&mut self) {
-        self.zeroize()
+        self.zeroize();
     }
 }
 
@@ -242,7 +242,7 @@ where
     fn absorb_any(&mut self, bin: &[u8], rate: usize, cd: u8) {
         let mut chunks_it = bin.chunks(rate);
         if !self.up {
-            self.up(None, 0x00)
+            self.up(None, 0x00);
         }
         self.down(chunks_it.next(), cd);
         for chunk in chunks_it {
@@ -345,7 +345,7 @@ where
     }
 
     fn squeeze_more_mut(&mut self, out: &mut [u8]) {
-        self.core.squeeze_more_mut(out)
+        self.core.squeeze_more_mut(out);
     }
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
@@ -414,7 +414,7 @@ where
 
         // If given a counter, trickle it in one byte at a time.
         if let Some(counter) = counter {
-            core.absorb_any(counter, 1, 0x00)
+            core.absorb_any(counter, 1, 0x00);
         }
 
         CyclistKeyed { core }
@@ -548,7 +548,7 @@ where
     }
 
     fn squeeze_more_mut(&mut self, out: &mut [u8]) {
-        self.core.squeeze_more_mut(out)
+        self.core.squeeze_more_mut(out);
     }
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {

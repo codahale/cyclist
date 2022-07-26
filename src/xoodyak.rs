@@ -44,7 +44,7 @@ impl AsMut<[u8; 48]> for Xoodoo {
 
 impl Zeroize for Xoodoo {
     fn zeroize(&mut self) {
-        self.0.zeroize()
+        self.0.zeroize();
     }
 }
 
