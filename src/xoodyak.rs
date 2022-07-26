@@ -20,7 +20,7 @@ pub type XoodyakKeyed = CyclistKeyed<
 >;
 
 /// The standard Xoodoo\[12\] permutation.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[repr(align(4))]
 pub struct Xoodoo([u8; 48]);
 
