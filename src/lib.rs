@@ -406,7 +406,7 @@ where
         state_len += nonce.len();
 
         // Set the last byte of the initial state to the key length.
-        state[state_len] = key.len() as u8;
+        state[state_len] = key.len().try_into().expect("invalid key length");
         state_len += 1;
 
         // Absorb the initial state.
