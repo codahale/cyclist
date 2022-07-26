@@ -70,7 +70,7 @@ pub type Keccyak128Keyed = CyclistKeyed<
 >;
 
 /// The Keccak-p\[1600,12\] permutation from the KangarooTwelve XOF/hash function.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[repr(align(8))]
 pub struct KeccakP1600_12([u8; 200]);
 
@@ -109,7 +109,7 @@ impl Permutation<200> for KeccakP1600_12 {
 }
 
 /// The Keccak-p\[1600,14\] permutation from the MarsupilamiFourteen XOF/hash function.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[repr(align(8))]
 pub struct KeccakP1600_14([u8; 200]);
 
@@ -148,7 +148,7 @@ impl Permutation<200> for KeccakP1600_14 {
 }
 
 /// The Keccak-f\[1600\] permutation from the SHA-3 hash algorithm.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[repr(align(8))]
 pub struct KeccakF1600([u8; 200]);
 
