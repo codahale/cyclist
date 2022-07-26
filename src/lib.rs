@@ -40,6 +40,20 @@
 //! assert_eq!(ciphertext, vec![97, 247, 123, 78, 11, 4, 150, 39, 135, 111, 17, 144, 2, 213, 214, 67, 129, 74, 235, 106, 181, 3, 167, 200, 108, 162, 56, 51, 224, 223, 216, 143, 88, 206, 100, 125, 51, 44]);
 //! ```
 #![cfg_attr(not(feature = "std"), no_std)]
+#![forbid(unsafe_code)]
+#![warn(
+    missing_docs,
+    rust_2018_idioms,
+    trivial_casts,
+    unused_lifetimes,
+    unused_qualifications,
+    missing_debug_implementations,
+    clippy::as_conversions,
+    clippy::cognitive_complexity,
+    clippy::missing_const_for_fn,
+    clippy::missing_errors_doc,
+    clippy::semicolon_if_nothing_returned
+)]
 
 use subtle::ConstantTimeEq;
 #[cfg(feature = "std")]
