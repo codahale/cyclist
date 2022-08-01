@@ -192,22 +192,6 @@ impl<
         const ABSORB_RATE: usize,
         const SQUEEZE_RATE: usize,
         const RATCHET_RATE: usize,
-    > Drop for CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
-where
-    P: Permutation<WIDTH>,
-{
-    fn drop(&mut self) {
-        self.zeroize();
-    }
-}
-
-impl<
-        P,
-        const WIDTH: usize,
-        const KEYED: bool,
-        const ABSORB_RATE: usize,
-        const SQUEEZE_RATE: usize,
-        const RATCHET_RATE: usize,
     > CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
 where
     P: Permutation<WIDTH>,
