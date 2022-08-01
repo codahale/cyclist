@@ -367,6 +367,15 @@ where
     }
 }
 
+impl<P, const WIDTH: usize, const HASH_RATE: usize> Zeroize for CyclistHash<P, WIDTH, HASH_RATE>
+where
+    P: Permutation<WIDTH>,
+{
+    fn zeroize(&mut self) {
+        self.core.zeroize();
+    }
+}
+
 /// A Cyclist object in keyed mode. Parameterized with the permutation algorithm, the permutation
 /// width, the absorb rate, the squeeze rate, the ratchet rate, and the length of authentication
 /// tags.
@@ -567,6 +576,22 @@ where
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_key_mut(out);
+    }
+}
+
+impl<
+        P,
+        const WIDTH: usize,
+        const ABSORB_RATE: usize,
+        const SQUEEZE_RATE: usize,
+        const RATCHET_RATE: usize,
+        const TAG_LEN: usize,
+    > Zeroize for CyclistKeyed<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE, TAG_LEN>
+where
+    P: Permutation<WIDTH>,
+{
+    fn zeroize(&mut self) {
+        self.core.zeroize();
     }
 }
 
