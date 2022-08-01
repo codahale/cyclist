@@ -1,4 +1,4 @@
-use aead::{Aead, NewAead, Payload};
+use aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::ChaCha20Poly1305;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
