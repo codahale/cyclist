@@ -95,12 +95,6 @@ pub trait Permutation<const WIDTH: usize>:
 
 /// Cyclist operations which are common to both hash and keyed modes.
 pub trait Cyclist {
-    /// Returns the number of bytes which can be absorbed before the state is permuted.
-    fn absorb_rate(&self) -> usize;
-
-    /// Returns the number of bytes which can be squeezed before the state is permuted.
-    fn squeeze_rate(&self) -> usize;
-
     /// Absorbs the given slice.
     fn absorb(&mut self, bin: &[u8]);
 
@@ -307,6 +301,21 @@ where
     core: CyclistCore<P, WIDTH, false, HASH_RATE, HASH_RATE, 0>,
 }
 
+impl<P, const WIDTH: usize, const HASH_RATE: usize> CyclistHash<P, WIDTH, HASH_RATE>
+where
+    P: Permutation<WIDTH>,
+{
+    /// Returns the number of bytes which can be absorbed before the state is permuted.
+    pub const fn absorb_rate(&self) -> usize {
+        HASH_RATE
+    }
+
+    /// Returns the number of bytes which can be squeezed before the state is permuted.
+    pub const fn squeeze_rate(&self) -> usize {
+        HASH_RATE
+    }
+}
+
 impl<P, const WIDTH: usize, const HASH_RATE: usize> Default for CyclistHash<P, WIDTH, HASH_RATE>
 where
     P: Permutation<WIDTH>,
@@ -322,14 +331,6 @@ impl<P, const WIDTH: usize, const HASH_RATE: usize> Cyclist for CyclistHash<P, W
 where
     P: Permutation<WIDTH>,
 {
-    fn absorb_rate(&self) -> usize {
-        HASH_RATE
-    }
-
-    fn squeeze_rate(&self) -> usize {
-        HASH_RATE
-    }
-
     fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
     }
@@ -521,6 +522,21 @@ where
         self.squeeze_mut(&mut t_p);
         CtOption::new(c, t.ct_eq(&t_p)).into()
     }
+
+    /// Returns the number of bytes which can be absorbed before the state is permuted.
+    pub const fn absorb_rate(&self) -> usize {
+        ABSORB_RATE
+    }
+
+    /// Returns the number of bytes which can be squeezed before the state is permuted.
+    pub const fn squeeze_rate(&self) -> usize {
+        SQUEEZE_RATE
+    }
+
+    /// Returns the length of an authentication tag in bytes.
+    pub const fn tag_len(&self) -> usize {
+        TAG_LEN
+    }
 }
 
 impl<
@@ -534,14 +550,6 @@ impl<
 where
     P: Permutation<WIDTH>,
 {
-    fn absorb_rate(&self) -> usize {
-        ABSORB_RATE
-    }
-
-    fn squeeze_rate(&self) -> usize {
-        SQUEEZE_RATE
-    }
-
     fn absorb(&mut self, bin: &[u8]) {
         self.core.absorb(bin);
     }
