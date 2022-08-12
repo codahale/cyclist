@@ -1,6 +1,6 @@
 [package]
 name = "cyclist"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Coda Hale <coda.hale@gmail.com>"]
 edition = "2021"
 license = "MIT"
