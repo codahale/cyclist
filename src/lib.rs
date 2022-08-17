@@ -306,12 +306,12 @@ where
     P: Permutation<WIDTH>,
 {
     /// Returns the number of bytes which can be absorbed before the state is permuted.
-    pub const fn absorb_rate(&self) -> usize {
+    pub const fn absorb_rate() -> usize {
         HASH_RATE
     }
 
     /// Returns the number of bytes which can be squeezed before the state is permuted.
-    pub const fn squeeze_rate(&self) -> usize {
+    pub const fn squeeze_rate() -> usize {
         HASH_RATE
     }
 }
@@ -524,17 +524,17 @@ where
     }
 
     /// Returns the number of bytes which can be absorbed before the state is permuted.
-    pub const fn absorb_rate(&self) -> usize {
+    pub const fn absorb_rate() -> usize {
         ABSORB_RATE
     }
 
     /// Returns the number of bytes which can be squeezed before the state is permuted.
-    pub const fn squeeze_rate(&self) -> usize {
+    pub const fn squeeze_rate() -> usize {
         SQUEEZE_RATE
     }
 
     /// Returns the length of an authentication tag in bytes.
-    pub const fn tag_len(&self) -> usize {
+    pub const fn tag_len() -> usize {
         TAG_LEN
     }
 }
@@ -596,13 +596,13 @@ mod tests {
     #[test]
     fn absorbing_more() {
         let mut st = XoodyakHash::default();
-        let mut input = vec![20u8; st.absorb_rate() * 3];
+        let mut input = vec![20u8; XoodyakHash::absorb_rate() * 3];
         input.extend([39u8; 17]);
         st.absorb(&input);
         let one = st.squeeze(10);
 
         let mut st = XoodyakHash::default();
-        st.absorb(&vec![20u8; st.absorb_rate() * 3]);
+        st.absorb(&vec![20u8; XoodyakHash::absorb_rate() * 3]);
         st.absorb_more(&[39u8; 17]);
         let two = st.squeeze(10);
 
@@ -612,10 +612,10 @@ mod tests {
     #[test]
     fn squeezing_more() {
         let mut st = XoodyakHash::default();
-        let one = st.squeeze(st.absorb_rate() * 3 + 17);
+        let one = st.squeeze(XoodyakHash::absorb_rate() * 3 + 17);
 
         let mut st = XoodyakHash::default();
-        let mut two = st.squeeze(st.absorb_rate() * 3);
+        let mut two = st.squeeze(XoodyakHash::absorb_rate() * 3);
         two.extend(st.squeeze_more(17));
 
         assert_eq!(one, two);
