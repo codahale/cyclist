@@ -2,7 +2,6 @@
 //!
 //! Uses the [Xoodoo] permutation to provide ~128-bit security.
 use byteorder::{ByteOrder, LittleEndian};
-use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -39,12 +38,6 @@ impl AsRef<[u8; 48]> for Xoodoo {
 impl AsMut<[u8; 48]> for Xoodoo {
     fn as_mut(&mut self) -> &mut [u8; 48] {
         &mut self.0
-    }
-}
-
-impl Zeroize for Xoodoo {
-    fn zeroize(&mut self) {
-        self.0.zeroize();
     }
 }
 

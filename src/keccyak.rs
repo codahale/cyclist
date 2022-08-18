@@ -20,7 +20,6 @@
 //! analyses or specifications.
 
 use byteorder::{ByteOrder, LittleEndian};
-use zeroize::Zeroize;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -92,12 +91,6 @@ impl AsMut<[u8; 200]> for KeccakP1600_12 {
     }
 }
 
-impl Zeroize for KeccakP1600_12 {
-    fn zeroize(&mut self) {
-        self.0.zeroize();
-    }
-}
-
 impl Permutation<200> for KeccakP1600_12 {
     #[inline(always)]
     fn permute(&mut self) {
@@ -131,12 +124,6 @@ impl AsMut<[u8; 200]> for KeccakP1600_14 {
     }
 }
 
-impl Zeroize for KeccakP1600_14 {
-    fn zeroize(&mut self) {
-        self.0.zeroize();
-    }
-}
-
 impl Permutation<200> for KeccakP1600_14 {
     #[inline(always)]
     fn permute(&mut self) {
@@ -167,12 +154,6 @@ impl AsRef<[u8; 200]> for KeccakF1600 {
 impl AsMut<[u8; 200]> for KeccakF1600 {
     fn as_mut(&mut self) -> &mut [u8; 200] {
         &mut self.0
-    }
-}
-
-impl Zeroize for KeccakF1600 {
-    fn zeroize(&mut self) {
-        self.0.zeroize();
     }
 }
 

@@ -58,7 +58,6 @@
 use subtle::ConstantTimeEq;
 #[cfg(feature = "std")]
 use subtle::CtOption;
-use zeroize::Zeroize;
 
 #[cfg(feature = "keccyak")]
 pub mod keccyak;
@@ -67,7 +66,7 @@ pub mod xoodyak;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.
 pub trait Permutation<const WIDTH: usize>:
-    Clone + Default + AsRef<[u8; WIDTH]> + AsMut<[u8; WIDTH]> + Zeroize
+    Clone + Default + AsRef<[u8; WIDTH]> + AsMut<[u8; WIDTH]>
 {
     /// Adds the given byte to the state at the given offset.
     #[inline(always)]
@@ -160,23 +159,6 @@ struct CyclistCore<
 {
     state: P,
     up: bool,
-}
-
-impl<
-        P,
-        const WIDTH: usize,
-        const KEYED: bool,
-        const ABSORB_RATE: usize,
-        const SQUEEZE_RATE: usize,
-        const RATCHET_RATE: usize,
-    > Zeroize for CyclistCore<P, WIDTH, KEYED, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>
-where
-    P: Permutation<WIDTH>,
-{
-    fn zeroize(&mut self) {
-        self.up.zeroize();
-        self.state.zeroize();
-    }
 }
 
 impl<
@@ -349,15 +331,6 @@ where
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_key_mut(out);
-    }
-}
-
-impl<P, const WIDTH: usize, const HASH_RATE: usize> Zeroize for CyclistHash<P, WIDTH, HASH_RATE>
-where
-    P: Permutation<WIDTH>,
-{
-    fn zeroize(&mut self) {
-        self.core.zeroize();
     }
 }
 
@@ -568,22 +541,6 @@ where
 
     fn squeeze_key_mut(&mut self, out: &mut [u8]) {
         self.core.squeeze_key_mut(out);
-    }
-}
-
-impl<
-        P,
-        const WIDTH: usize,
-        const ABSORB_RATE: usize,
-        const SQUEEZE_RATE: usize,
-        const RATCHET_RATE: usize,
-        const TAG_LEN: usize,
-    > Zeroize for CyclistKeyed<P, WIDTH, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE, TAG_LEN>
-where
-    P: Permutation<WIDTH>,
-{
-    fn zeroize(&mut self) {
-        self.core.zeroize();
     }
 }
 
