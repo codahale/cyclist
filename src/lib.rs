@@ -55,9 +55,7 @@
     clippy::semicolon_if_nothing_returned
 )]
 
-use subtle::ConstantTimeEq;
-#[cfg(feature = "std")]
-use subtle::CtOption;
+use constant_time_eq::constant_time_eq;
 
 #[cfg(feature = "keccyak")]
 pub mod keccyak;
@@ -480,7 +478,7 @@ where
         self.decrypt_mut(c);
         let mut t_p = [0u8; TAG_LEN];
         self.squeeze_mut(&mut t_p);
-        t.ct_eq(&t_p).into()
+        constant_time_eq(t, &t_p)
     }
 
     /// Returns an unsealed copy of the given slice, or `None` if the ciphertext cannot be
@@ -493,7 +491,7 @@ where
         let t = &bin[bin.len() - TAG_LEN..];
         let mut t_p = [0u8; TAG_LEN];
         self.squeeze_mut(&mut t_p);
-        CtOption::new(c, t.ct_eq(&t_p)).into()
+        constant_time_eq(t, &t_p).then_some(c)
     }
 
     /// Returns the number of bytes which can be absorbed before the state is permuted.
