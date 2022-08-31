@@ -485,10 +485,10 @@ where
     /// authenticated.
     #[cfg(feature = "std")]
     pub fn open(&mut self, bin: &[u8]) -> Option<Vec<u8>> {
-        let mut c = bin[..bin.len() - TAG_LEN].to_vec();
+        let (c, t) = bin.split_at(bin.len() - TAG_LEN);
+        let mut c = c.to_vec();
         self.decrypt_mut(&mut c);
 
-        let t = &bin[bin.len() - TAG_LEN..];
         let mut t_p = [0u8; TAG_LEN];
         self.squeeze_mut(&mut t_p);
         constant_time_eq(t, &t_p).then_some(c)
