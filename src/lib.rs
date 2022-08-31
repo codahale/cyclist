@@ -478,7 +478,12 @@ where
         self.decrypt_mut(c);
         let mut t_p = [0u8; TAG_LEN];
         self.squeeze_mut(&mut t_p);
-        constant_time_eq(t, &t_p)
+        if constant_time_eq(t, &t_p) {
+            true
+        } else {
+            in_out.fill(0);
+            false
+        }
     }
 
     /// Returns an unsealed copy of the given slice, or `None` if the ciphertext cannot be
