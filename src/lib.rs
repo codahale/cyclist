@@ -407,8 +407,8 @@ where
             self.core.up(Some(&mut tmp), cu);
             cu = 0x00;
             self.core.down(Some(in_out_chunk), 0x00);
-            for (in_out_chunk_byte, tmp_byte) in in_out_chunk.iter_mut().zip(&tmp) {
-                *in_out_chunk_byte ^= *tmp_byte;
+            for (p, k) in in_out_chunk.iter_mut().zip(&tmp) {
+                *p ^= *k;
             }
         }
     }
@@ -428,8 +428,8 @@ where
         for in_out_chunk in in_out.chunks_mut(SQUEEZE_RATE) {
             self.core.up(Some(&mut tmp), cu);
             cu = 0x00;
-            for (in_out_chunk_byte, tmp_byte) in in_out_chunk.iter_mut().zip(&tmp) {
-                *in_out_chunk_byte ^= *tmp_byte;
+            for (c, k) in in_out_chunk.iter_mut().zip(&tmp) {
+                *c ^= *k;
             }
             self.core.down(Some(in_out_chunk), 0x00);
         }
