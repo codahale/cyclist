@@ -402,12 +402,23 @@ where
     /// Encrypts the given mutable slice in place.
     pub fn encrypt_mut(&mut self, in_out: &mut [u8]) {
         let mut tmp = [0u8; SQUEEZE_RATE];
+
+        // Start with 0x80 as the domain separator for the UP mode.
         let mut cu = 0x80;
-        for in_out_chunk in in_out.chunks_mut(SQUEEZE_RATE) {
+
+        // For each SQUEEZE_RATE-sized chunk of plaintext:
+        for plaintext in in_out.chunks_mut(SQUEEZE_RATE) {
+            // Fill the temporary buffer with output from the state.
             self.core.up(Some(&mut tmp), cu);
+
+            // Use 0x00 as the domain separator for all following UP modes.
             cu = 0x00;
-            self.core.down(Some(in_out_chunk), 0x00);
-            for (p, k) in in_out_chunk.iter_mut().zip(&tmp) {
+
+            // Update the state with the plaintext.
+            self.core.down(Some(plaintext), 0x00);
+
+            // XOR the plaintext with the state output.
+            for (p, k) in plaintext.iter_mut().zip(&tmp) {
                 *p ^= *k;
             }
         }
@@ -424,14 +435,25 @@ where
     /// Decrypts the given mutable slice in place.
     pub fn decrypt_mut(&mut self, in_out: &mut [u8]) {
         let mut tmp = [0u8; SQUEEZE_RATE];
+
+        // Start with 0x80 as the domain separator for the UP mode.
         let mut cu = 0x80;
-        for in_out_chunk in in_out.chunks_mut(SQUEEZE_RATE) {
+
+        // For each SQUEEZE_RATE-sized chunk of ciphertext:
+        for ciphertext in in_out.chunks_mut(SQUEEZE_RATE) {
+            // Fill the temporary buffer with output from the state.
             self.core.up(Some(&mut tmp), cu);
+
+            // Use 0x00 as the domain separator for all following UP modes.
             cu = 0x00;
-            for (c, k) in in_out_chunk.iter_mut().zip(&tmp) {
+
+            // XOR the ciphertext with the state output.
+            for (c, k) in ciphertext.iter_mut().zip(&tmp) {
                 *c ^= *k;
             }
-            self.core.down(Some(in_out_chunk), 0x00);
+
+            // Update the state with the plaintext.
+            self.core.down(Some(ciphertext), 0x00);
         }
     }
 
@@ -454,9 +476,14 @@ where
     ///
     /// The last `TAG_LEN` bytes of the slice will be overwritten with the authentication tag.
     pub fn seal_mut(&mut self, in_out: &mut [u8]) {
-        let (c, t) = in_out.split_at_mut(in_out.len() - TAG_LEN);
-        self.encrypt_mut(c);
-        self.squeeze_mut(t);
+        // Split the buffer into plaintext and tag.
+        let (plaintext, tag) = in_out.split_at_mut(in_out.len() - TAG_LEN);
+
+        // Encrypt the plaintext.
+        self.encrypt_mut(plaintext);
+
+        // Squeeze a tag.
+        self.squeeze_mut(tag);
     }
 
     /// Returns a sealed copy of the given slice.
@@ -474,13 +501,23 @@ where
     /// last `TAG_LEN` bytes of the slice will be unmodified.
     #[must_use]
     pub fn open_mut(&mut self, in_out: &mut [u8]) -> bool {
-        let (c, t) = in_out.split_at_mut(in_out.len() - TAG_LEN);
-        self.decrypt_mut(c);
-        let mut t_p = [0u8; TAG_LEN];
-        self.squeeze_mut(&mut t_p);
-        if constant_time_eq(t, &t_p) {
+        // Split the buffer into ciphertext and tag.
+        let (ciphertext, tag) = in_out.split_at_mut(in_out.len() - TAG_LEN);
+
+        // Decrypt the ciphertext.
+        self.decrypt_mut(ciphertext);
+
+        // Squeeze a counterfactual tag.
+        let mut tag_p = [0u8; TAG_LEN];
+        self.squeeze_mut(&mut tag_p);
+
+        // If the two tags are equal in constant time, the plaintext is authentic.
+        if constant_time_eq(tag, &tag_p) {
             true
         } else {
+            // Otherwise, the ciphertext is inauthentic and we zero out the inauthentic plaintext to
+            // avoid bugs where the caller forgets to check the return value of this function and
+            // discloses inauthentic plaintext.
             in_out.fill(0);
             false
         }
