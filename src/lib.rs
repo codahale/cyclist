@@ -490,13 +490,9 @@ where
     /// authenticated.
     #[cfg(feature = "std")]
     pub fn open(&mut self, bin: &[u8]) -> Option<Vec<u8>> {
-        let (c, t) = bin.split_at(bin.len() - TAG_LEN);
-        let mut c = c.to_vec();
-        self.decrypt_mut(&mut c);
-
-        let mut t_p = [0u8; TAG_LEN];
-        self.squeeze_mut(&mut t_p);
-        constant_time_eq(t, &t_p).then_some(c)
+        let mut c = bin.to_vec();
+        self.open_mut(&mut c)
+            .then(|| c[..c.len() - TAG_LEN].to_vec())
     }
 
     /// Returns the number of bytes which can be absorbed before the state is permuted.
