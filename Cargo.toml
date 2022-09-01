@@ -30,6 +30,7 @@ aes-gcm = "0.10.1"
 blake3 = "1.3.1"
 chacha20poly1305 = "0.10.1"
 criterion = { version = "0.3.6", features = ["html_reports"] }
+keccak = "0.1.2"
 sha2 = "0.10.3"
 sha3 = "0.10.2"
 strobe-rs = "0.7.1"

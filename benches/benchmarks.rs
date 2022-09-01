@@ -194,6 +194,18 @@ fn permutation_benchmarks(c: &mut Criterion) {
     let mut g = c.benchmark_group("permutation");
     g.sample_size(1_000);
     g.throughput(Throughput::Bytes(200));
+    g.bench_function("RustCrypto/Keccak-f1600", |b| {
+        let mut state = [0u64; 25];
+        b.iter(|| keccak::f1600(&mut state))
+    });
+    g.bench_function("RustCrypto/Keccak-p1600-14", |b| {
+        let mut state = [0u64; 25];
+        b.iter(|| keccak::keccak_p(&mut state, 14))
+    });
+    g.bench_function("RustCrypto/Keccak-p1600-12", |b| {
+        let mut state = [0u64; 25];
+        b.iter(|| keccak::keccak_p(&mut state, 12))
+    });
     g.bench_function("Keccak-f1600", |b| {
         let mut state = KeccakF1600::default();
         b.iter(|| state.permute())
