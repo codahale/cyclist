@@ -80,6 +80,13 @@ fn hash_benchmarks(c: &mut Criterion) {
             st.squeeze(32)
         })
     });
+    g.bench_with_input("Blake3", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = blake3::Hasher::default();
+            st.update(block);
+            st.finalize()
+        })
+    });
     g.bench_with_input("Keccyak128", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = Keccyak128Hash::default();
