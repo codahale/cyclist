@@ -25,12 +25,12 @@ keccak-p = { version = "0.1.0", optional = true }
 xoodoo-p = { version = "0.1.0", optional = true }
 
 [dev-dependencies]
-aead = "0.5.0"
+aead = "0.5.1"
 aes-gcm = "0.10.1"
-chacha20poly1305 = "0.10.0"
+chacha20poly1305 = "0.10.1"
 criterion = { version = "0.3.5", features = ["html_reports"] }
-sha2 = "0.10.2"
-sha3 = "0.10.1"
+sha2 = "0.10.3"
+sha3 = "0.10.2"
 strobe-rs = "0.7.1"
 
 [[bench]]
