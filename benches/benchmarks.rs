@@ -13,7 +13,7 @@ use cyclist::keccyak::{
 use cyclist::xoodyak::{Xoodoo, XoodyakHash, XoodyakKeyed};
 use cyclist::{Cyclist, Permutation};
 
-const INPUT: usize = 100 * 1024;
+const INPUT: usize = 1024 * 1024;
 
 fn hash_benchmarks(c: &mut Criterion) {
     let mut g = c.benchmark_group("hash");
