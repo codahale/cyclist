@@ -518,7 +518,7 @@ where
             // Otherwise, the ciphertext is inauthentic and we zero out the inauthentic plaintext to
             // avoid bugs where the caller forgets to check the return value of this function and
             // discloses inauthentic plaintext.
-            in_out.fill(0);
+            ciphertext.fill(0);
             false
         }
     }
