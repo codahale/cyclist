@@ -1,6 +1,7 @@
 use aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes128Gcm, Aes256Gcm};
 use chacha20poly1305::ChaCha20Poly1305;
+use ck_meow::Meow;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use sha2::{Digest, Sha256, Sha512};
 use sha3::Sha3_512;
@@ -25,6 +26,16 @@ fn hash_benchmarks(c: &mut Criterion) {
             let mut st = XoodyakHash::default();
             st.absorb(block);
             st.squeeze(32)
+        })
+    });
+    g.bench_with_input("Meow", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = Meow::new(b"cheeseburger");
+            st.ad(block, false);
+
+            let mut out = [0u8; 32];
+            st.prf(&mut out, false);
+            out
         })
     });
     g.bench_with_input("strobe-256", &[0u8; INPUT], |b, block| {
@@ -80,18 +91,18 @@ fn hash_benchmarks(c: &mut Criterion) {
             st.squeeze(32)
         })
     });
-    g.bench_with_input("Blake3", &[0u8; INPUT], |b, block| {
-        b.iter(|| {
-            let mut st = blake3::Hasher::default();
-            st.update(block);
-            st.finalize()
-        })
-    });
     g.bench_with_input("Keccyak128", &[0u8; INPUT], |b, block| {
         b.iter(|| {
             let mut st = Keccyak128Hash::default();
             st.absorb(block);
             st.squeeze(32)
+        })
+    });
+    g.bench_with_input("Blake3", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = blake3::Hasher::default();
+            st.update(block);
+            st.finalize()
         })
     });
     g.finish();
