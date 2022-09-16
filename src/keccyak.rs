@@ -1,6 +1,6 @@
 //! A collection of Cyclist/Keccak-_p_ (aka Keccyak) schemes.
 //!
-//! The three schemes are:
+//! The four schemes are:
 //!
 //! 1. [`KeccyakMaxHash`] and [`KeccyakMaxKeyed`], which use the full Keccak-f\[1600\] permutation,
 //!    are parameterized to offer ~256-bit security with a very conservative design.
@@ -8,6 +8,9 @@
 //!    permutation, are parameterized to offer ~256-bit security with a performance-oriented design.
 //! 3. [`Keccyak128Hash`] and [`Keccyak128Keyed`], which use the 12-round Keccak-p\[1600,12\]
 //!    permutation, are parameterized to offer ~128-bit security with a performance-oriented design.
+//! 4. [`KeccyakMinHash`] and [`KeccyakMinKeyed`], which use the 10-round Keccak-p\[1600,10\]
+//!    permutation, are parameterized to offer ~128-bit security with a very performance-oriented
+//!    design.
 //!
 //! Parameters were chosen based on the discussion of the
 //! [Motorist](https://keccak.team/files/Keyakv2-doc2.2.pdf) construction, of which Cyclist is a
@@ -67,6 +70,54 @@ pub type Keccyak128Keyed = CyclistKeyed<
     16,
     16,
 >;
+
+/// A Cyclist hash using Keccak-p\[1600,10\] and `r=1344`, offering 128-bit security and a
+/// very performance-oriented design.
+pub type KeccyakMinHash = CyclistHash<KeccakP1600_10, { 1600 / 8 }, { (1600 - 256) / 8 }>;
+
+/// A keyed Cyclist using Keccak-p\[1600,10\] and `r_absorb=1568`/`r_squeeze=1408`, offering 128-bit
+/// security and a performance-oriented design.
+pub type KeccyakMinKeyed = CyclistKeyed<
+    KeccakP1600_10,
+    { 1600 / 8 },
+    { (1600 - 32) / 8 },  // R_absorb=b-W
+    { (1600 - 192) / 8 }, // R_squeeze=b-c
+    16,
+    16,
+>;
+
+/// The Keccak-p\[1600,10\] permutation (aka KitTen).
+#[derive(Clone, Debug)]
+#[repr(align(8))]
+pub struct KeccakP1600_10([u8; 200]);
+
+impl Default for KeccakP1600_10 {
+    fn default() -> Self {
+        KeccakP1600_10([0u8; 200])
+    }
+}
+
+impl AsRef<[u8; 200]> for KeccakP1600_10 {
+    fn as_ref(&self) -> &[u8; 200] {
+        &self.0
+    }
+}
+
+impl AsMut<[u8; 200]> for KeccakP1600_10 {
+    fn as_mut(&mut self) -> &mut [u8; 200] {
+        &mut self.0
+    }
+}
+
+impl Permutation<200> for KeccakP1600_10 {
+    #[inline(always)]
+    fn permute(&mut self) {
+        let mut lanes = [0u64; 25];
+        LittleEndian::read_u64_into(&self.0, &mut lanes);
+        keccak_p::keccak_p1600_10(&mut lanes);
+        LittleEndian::write_u64_into(&lanes, &mut self.0);
+    }
+}
 
 /// The Keccak-p\[1600,12\] permutation from the KangarooTwelve XOF/hash function.
 #[derive(Clone, Debug)]

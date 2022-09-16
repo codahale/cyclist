@@ -8,8 +8,9 @@ use sha3::Sha3_512;
 use strobe_rs::{SecParam, Strobe};
 
 use cyclist::keccyak::{
-    KeccakF1600, KeccakP1600_12, KeccakP1600_14, Keccyak128Hash, Keccyak128Keyed, Keccyak256Hash,
-    Keccyak256Keyed, KeccyakMaxHash, KeccyakMaxKeyed,
+    KeccakF1600, KeccakP1600_10, KeccakP1600_12, KeccakP1600_14, Keccyak128Hash, Keccyak128Keyed,
+    Keccyak256Hash, Keccyak256Keyed, KeccyakMaxHash, KeccyakMaxKeyed, KeccyakMinHash,
+    KeccyakMinKeyed,
 };
 use cyclist::xoodyak::{Xoodoo, XoodyakHash, XoodyakKeyed};
 use cyclist::{Cyclist, Permutation};
@@ -105,6 +106,13 @@ fn hash_benchmarks(c: &mut Criterion) {
             st.finalize()
         })
     });
+    g.bench_with_input("KeccyakMin", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = KeccyakMinHash::default();
+            st.absorb(block);
+            st.squeeze(32)
+        })
+    });
     g.finish();
 }
 
@@ -198,6 +206,12 @@ fn aead_benchmarks(c: &mut Criterion) {
             st.seal(block)
         })
     });
+    g.bench_with_input("KeccyakMin", &[0u8; INPUT], |b, block| {
+        b.iter(|| {
+            let mut st = KeccyakMinKeyed::new(&[0u8; 32], None, None);
+            st.seal(block)
+        })
+    });
     g.finish();
 }
 
@@ -227,6 +241,10 @@ fn permutation_benchmarks(c: &mut Criterion) {
     });
     g.bench_function("Keccak-p1600-12", |b| {
         let mut state = KeccakP1600_12::default();
+        b.iter(|| state.permute())
+    });
+    g.bench_function("Keccak-p1600-10", |b| {
+        let mut state = KeccakP1600_10::default();
         b.iter(|| state.permute())
     });
     g.throughput(Throughput::Bytes(48));
