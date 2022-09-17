@@ -57,9 +57,7 @@
 
 use constant_time_eq::constant_time_eq;
 
-#[cfg(feature = "keccyak")]
 pub mod keccyak;
-#[cfg(feature = "xoodyak")]
 pub mod xoodyak;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.

@@ -1,3 +1,5 @@
+#![cfg(feature = "keccyak")]
+
 //! A collection of Cyclist/Keccak-_p_ (aka Keccyak) schemes.
 //!
 //! The four schemes are:
