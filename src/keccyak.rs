@@ -78,7 +78,7 @@ pub type Keccyak128Keyed = CyclistKeyed<
 pub type KeccyakMinHash = CyclistHash<KeccakP1600_10, { 1600 / 8 }, { (1600 - 256) / 8 }>;
 
 /// A keyed Cyclist using Keccak-p\[1600,10\] and `r_absorb=1568`/`r_squeeze=1408`, offering 128-bit
-/// security and a performance-oriented design.
+/// security and a very performance-oriented design.
 pub type KeccyakMinKeyed = CyclistKeyed<
     KeccakP1600_10,
     { 1600 / 8 },
