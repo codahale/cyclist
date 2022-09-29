@@ -12,6 +12,9 @@ categories = ["cryptography", "no-std"]
 readme = "README.md"
 include = ["src/**/*", "benches/**/*", "LICENSE", "README.md"]
 
+[workspace]
+members = ["xtask"]
+
 [features]
 default = ["std", "keccyak", "xoodyak"]
 std = ["byteorder/std"]
