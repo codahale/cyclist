@@ -35,7 +35,7 @@ chacha20poly1305 = "0.10.1"
 ck-meow = "0.1.0"
 criterion = { version = "0.4.0", features = ["html_reports"] }
 keccak = "0.1.2"
-sha2 = "0.10.5"
+sha2 = "0.10.6"
 sha3 = "0.10.4"
 strobe-rs = "0.7.1"
 
