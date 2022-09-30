@@ -125,13 +125,7 @@ fn aead_benchmarks(c: &mut Criterion) {
         let n = [8u8; 12];
         b.iter(|| {
             let aes = Aes256Gcm::new(&k.into());
-            aes.encrypt(
-                &n.into(),
-                Payload {
-                    msg: block,
-                    aad: &[],
-                },
-            )
+            aes.encrypt(&n.into(), Payload { msg: block, aad: &[] })
         })
     });
     g.bench_with_input("AES-128-GCM", &[0u8; INPUT], |b, block| {
@@ -139,13 +133,7 @@ fn aead_benchmarks(c: &mut Criterion) {
         let n = [8u8; 12];
         b.iter(|| {
             let aes = Aes128Gcm::new(&k.into());
-            aes.encrypt(
-                &n.into(),
-                Payload {
-                    msg: block,
-                    aad: &[],
-                },
-            )
+            aes.encrypt(&n.into(), Payload { msg: block, aad: &[] })
         })
     });
     g.bench_with_input("strobe-256", &[0u8; INPUT], |b, block| {
@@ -173,13 +161,7 @@ fn aead_benchmarks(c: &mut Criterion) {
         let n = [8u8; 12];
         b.iter(|| {
             let chacha = ChaCha20Poly1305::new(&k.into());
-            chacha.encrypt(
-                &n.into(),
-                Payload {
-                    msg: block,
-                    aad: &[],
-                },
-            )
+            chacha.encrypt(&n.into(), Payload { msg: block, aad: &[] })
         })
     });
     g.bench_with_input("Xoodyak", &[0u8; INPUT], |b, block| {
@@ -255,10 +237,5 @@ fn permutation_benchmarks(c: &mut Criterion) {
     g.finish();
 }
 
-criterion_group!(
-    benches,
-    hash_benchmarks,
-    aead_benchmarks,
-    permutation_benchmarks
-);
+criterion_group!(benches, hash_benchmarks, aead_benchmarks, permutation_benchmarks);
 criterion_main!(benches);

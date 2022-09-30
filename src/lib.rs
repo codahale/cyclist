@@ -172,10 +172,7 @@ where
     fn new() -> Self {
         debug_assert!(ABSORB_RATE.max(SQUEEZE_RATE) + 2 <= WIDTH);
 
-        CyclistCore {
-            state: P::default(),
-            up: true,
-        }
+        CyclistCore { state: P::default(), up: true }
     }
 
     /// Initiates the UP mode with an optional block of data and a domain separator.
@@ -202,8 +199,7 @@ where
         } else {
             self.state.add_byte(0x01, 0);
         }
-        self.state
-            .add_byte(if KEYED { cd } else { cd & 0x01 }, WIDTH - 1);
+        self.state.add_byte(if KEYED { cd } else { cd & 0x01 }, WIDTH - 1);
         self.up = false;
     }
 
@@ -299,9 +295,7 @@ where
     P: Permutation<WIDTH>,
 {
     fn default() -> Self {
-        CyclistHash {
-            core: CyclistCore::new(),
-        }
+        CyclistHash { core: CyclistCore::new() }
     }
 }
 
@@ -526,8 +520,7 @@ where
     #[cfg(feature = "std")]
     pub fn open(&mut self, bin: &[u8]) -> Option<Vec<u8>> {
         let mut c = bin.to_vec();
-        self.open_mut(&mut c)
-            .then(|| c[..c.len() - TAG_LEN].to_vec())
+        self.open_mut(&mut c).then(|| c[..c.len() - TAG_LEN].to_vec())
     }
 
     /// Returns the number of bytes which can be absorbed before the state is permuted.
