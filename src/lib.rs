@@ -57,6 +57,7 @@
 
 use constant_time_eq::constant_time_eq;
 
+pub mod fuzzing;
 pub mod keccyak;
 pub mod xoodyak;
 
