@@ -166,31 +166,31 @@ fn aead_benchmarks(c: &mut Criterion) {
     });
     g.bench_with_input("Xoodyak", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = XoodyakKeyed::new(&[0u8; 32], None, None);
+            let mut st = XoodyakKeyed::new(&[0u8; 32], b"", b"");
             st.seal(block)
         })
     });
     g.bench_with_input("KeccyakMax", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccyakMaxKeyed::new(&[0u8; 32], None, None);
+            let mut st = KeccyakMaxKeyed::new(&[0u8; 32], b"", b"");
             st.seal(block)
         })
     });
     g.bench_with_input("Keccyak256", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = Keccyak256Keyed::new(&[0u8; 32], None, None);
+            let mut st = Keccyak256Keyed::new(&[0u8; 32], b"", b"");
             st.seal(block)
         })
     });
     g.bench_with_input("Keccyak128", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = Keccyak128Keyed::new(&[0u8; 32], None, None);
+            let mut st = Keccyak128Keyed::new(&[0u8; 32], b"", b"");
             st.seal(block)
         })
     });
     g.bench_with_input("KeccyakMin", &[0u8; INPUT], |b, block| {
         b.iter(|| {
-            let mut st = KeccyakMinKeyed::new(&[0u8; 32], None, None);
+            let mut st = KeccyakMinKeyed::new(&[0u8; 32], b"", b"");
             st.seal(block)
         })
     });

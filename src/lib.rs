@@ -20,7 +20,7 @@
 //! use cyclist::Cyclist;
 //! use cyclist::xoodyak::XoodyakKeyed;
 //!
-//! let mut mac = XoodyakKeyed::new(b"This is a secret key!", None, None);
+//! let mut mac = XoodyakKeyed::new(b"This is a secret key!", b"", b"");
 //! mac.absorb(b"This is an input message!");
 //! let tag = mac.squeeze(16);
 //!
@@ -33,7 +33,7 @@
 //! use cyclist::Cyclist;
 //! use cyclist::xoodyak::XoodyakKeyed;
 //!
-//! let mut aead = XoodyakKeyed::new(b"This is a secret key!", Some(b"This is a nonce!"), None);
+//! let mut aead = XoodyakKeyed::new(b"This is a secret key!", b"This is a nonce!", b"");
 //! aead.absorb(b"This is authenticated data!");
 //! let ciphertext = aead.seal(b"This is the plaintext!");
 //!
@@ -355,10 +355,9 @@ where
 {
     /// Creates a new [`CyclistKeyed`] instance with the given key, optional nonce, and optional
     /// counter.
-    pub fn new(key: &[u8], nonce: Option<&[u8]>, counter: Option<&[u8]>) -> Self {
+    pub fn new(key: &[u8], nonce: &[u8], counter: &[u8]) -> Self {
         let mut core =
             CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
-        let nonce = nonce.unwrap_or_default();
         assert!(
             key.len() + nonce.len() < ABSORB_RATE - 1,
             "key and nonce must be < {}",
@@ -385,7 +384,7 @@ where
         core.absorb_any(&state[..state_len], ABSORB_RATE, 0x02);
 
         // If given a counter, trickle it in one byte at a time.
-        if let Some(counter) = counter {
+        if !counter.is_empty() {
             core.absorb_any(counter, 1, 0x00);
         }
 

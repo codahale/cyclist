@@ -82,12 +82,12 @@ mod tests {
             0x27, 0x48, 0xd7, 0xa8, 0x6e, 0x78, 0x8e, 0xb9, 0xd4,
         ];
 
-        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None);
+        let mut x = XoodyakKeyed::new(&key, &nonce, b"");
         x.absorb(&ad);
         let ciphertext_p = x.seal(&plaintext);
         assert_eq!(&ciphertext, ciphertext_p.as_slice());
 
-        let mut x = XoodyakKeyed::new(&key, Some(&nonce), None);
+        let mut x = XoodyakKeyed::new(&key, &nonce, b"");
         x.absorb(&ad);
         let plaintext_p = x.open(&ciphertext);
         assert_eq!(Some(plaintext.to_vec()), plaintext_p);
@@ -112,11 +112,11 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let mut d = XoodyakKeyed::new(b"ok then", None, None);
+        let mut d = XoodyakKeyed::new(b"ok then", b"", b"");
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = XoodyakKeyed::new(b"ok then", None, None);
+        let mut d = XoodyakKeyed::new(b"ok then", b"", b"");
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);

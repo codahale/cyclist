@@ -226,11 +226,11 @@ mod tests {
 
     #[test]
     fn round_trip() {
-        let mut d = KeccyakMaxKeyed::new(b"ok then", None, None);
+        let mut d = KeccyakMaxKeyed::new(b"ok then", b"", b"");
         let m = b"it's a deal".to_vec();
         let c = d.seal(&m);
 
-        let mut d = KeccyakMaxKeyed::new(b"ok then", None, None);
+        let mut d = KeccyakMaxKeyed::new(b"ok then", b"", b"");
         let p = d.open(&c);
 
         assert_eq!(Some(m), p);
