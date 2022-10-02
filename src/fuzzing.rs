@@ -130,7 +130,7 @@ fn arb_data() -> impl Strategy<Value = Vec<u8>> {
 }
 /// An arbitrary hash mode operation.
 fn arb_hash_op() -> impl Strategy<Value = HashOp> {
-    prop_oneof![arb_data().prop_map(HashOp::Absorb), (1usize..256).prop_map(HashOp::Squeeze),]
+    prop_oneof![(1usize..256).prop_map(HashOp::Squeeze), arb_data().prop_map(HashOp::Absorb),]
 }
 
 /// An arbitrary keyed mode operation.
