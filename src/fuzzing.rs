@@ -125,29 +125,29 @@ fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>
 }
 
 /// An arbitrary byte string with length 0..200.
-fn arb_data() -> impl Strategy<Value = Vec<u8>> {
+fn data() -> impl Strategy<Value = Vec<u8>> {
     vec(any::<u8>(), 0..200)
 }
 /// An arbitrary hash mode operation.
-fn arb_hash_op() -> impl Strategy<Value = HashOp> {
-    prop_oneof![(1usize..256).prop_map(HashOp::Squeeze), arb_data().prop_map(HashOp::Absorb),]
+fn hash_op() -> impl Strategy<Value = HashOp> {
+    prop_oneof![(1usize..256).prop_map(HashOp::Squeeze), data().prop_map(HashOp::Absorb),]
 }
 
 /// An arbitrary keyed mode operation.
-fn arb_keyed_op() -> impl Strategy<Value = KeyedOp> {
+fn keyed_op() -> impl Strategy<Value = KeyedOp> {
     prop_oneof![
         Just(KeyedOp::Ratchet),
         (1usize..256).prop_map(KeyedOp::Squeeze),
-        arb_data().prop_map(KeyedOp::Absorb),
-        arb_data().prop_map(KeyedOp::Encrypt),
-        arb_data().prop_map(KeyedOp::Decrypt),
+        data().prop_map(KeyedOp::Absorb),
+        data().prop_map(KeyedOp::Encrypt),
+        data().prop_map(KeyedOp::Decrypt),
     ]
 }
 
 prop_compose! {
     /// A transcript of 0..62 arbitrary hash operations terminated with a `Squeeze(16)` operation to
     /// capture the duplex's final state.
-    fn arb_hash_transcript()(mut ops in vec(arb_hash_op(), 0..62)) -> HashTranscript {
+    fn hash_transcript()(mut ops in vec(hash_op(), 0..62)) -> HashTranscript {
         ops.push(HashOp::Squeeze(16));
         HashTranscript { ops }
     }
@@ -156,11 +156,11 @@ prop_compose! {
 prop_compose! {
     /// A transcript of 0..62 arbitrary keyed operations terminated with a `Squeeze(16)` operation
     /// to capture the duplex's final state.
-    fn arb_keyed_transcript()(
+    fn keyed_transcript()(
         key in vec(any::<u8>(), 1..16),
         nonce in vec(any::<u8>(), 0..16),
         counter in vec(any::<u8>(), 0..16),
-        mut ops in vec(arb_keyed_op(), 0..62),
+        mut ops in vec(keyed_op(), 0..62),
     ) -> KeyedTranscript {
         ops.push(KeyedOp::Squeeze(16));
         KeyedTranscript{ key, nonce, counter, ops }
@@ -171,7 +171,7 @@ proptest! {
     /// Any two equal hash mode transcripts must produce equal outputs. Any two different
     /// transcripts must produce different outputs.
     #[test]
-    fn hash_transcript_consistency(t0 in arb_hash_transcript(), t1 in arb_hash_transcript()) {
+    fn hash_transcript_consistency(t0 in hash_transcript(), t1 in hash_transcript()) {
         let out0 = apply_hash_transcript(&t0);
         let out1 = apply_hash_transcript(&t1);
 
@@ -185,7 +185,7 @@ proptest! {
     /// Any two equal keyed mode transcripts must produce equal outputs. Any two different
     /// transcripts must produce different outputs.
     #[test]
-    fn keyed_transcript_consistency(t0 in arb_keyed_transcript(), t1 in arb_keyed_transcript()) {
+    fn keyed_transcript_consistency(t0 in keyed_transcript(), t1 in keyed_transcript()) {
         let out0 = apply_keyed_transcript(&t0);
         let out1 = apply_keyed_transcript(&t1);
 
@@ -198,7 +198,7 @@ proptest! {
 
     /// For any transcript, reversible outputs (e.g. encrypt/decrypt) must be symmetric.
     #[test]
-    fn keyed_transcript_symmetry(t in arb_keyed_transcript()) {
+    fn keyed_transcript_symmetry(t in keyed_transcript()) {
         let (t_inv, a) = invert_keyed_transcript(&t);
         let (t_p, b) = invert_keyed_transcript(&t_inv);
 
