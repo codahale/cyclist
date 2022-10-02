@@ -102,11 +102,11 @@ fn arb_hash_op() -> impl Strategy<Value = HashOp> {
 /// An arbitrary keyed mode operation.
 fn arb_keyed_op() -> impl Strategy<Value = KeyedOp> {
     prop_oneof![
-        arb_data().prop_map(KeyedOp::Absorb),
+        Just(KeyedOp::Ratchet),
         (1usize..256).prop_map(KeyedOp::Squeeze),
+        arb_data().prop_map(KeyedOp::Absorb),
         arb_data().prop_map(KeyedOp::Encrypt),
         arb_data().prop_map(KeyedOp::Decrypt),
-        Just(KeyedOp::Ratchet),
     ]
 }
 
