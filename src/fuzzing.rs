@@ -1,7 +1,5 @@
 #![cfg(all(test, feature = "std", feature = "xoodyak"))]
 
-use std::iter;
-
 use proptest::collection::vec;
 use proptest::prelude::*;
 
@@ -54,14 +52,12 @@ struct KeyedTranscript {
     ops: Vec<KeyedOp>,
 }
 
-/// Apply the transcript's operations to Xoodyak in hash mode, plus a final `Squeeze(16)` to
-/// establish the duplex's final state, and return the duplex's outputs.
+/// Apply the transcript's operations to Xoodyak in hash mode and return the duplex's outputs.
 fn apply_hash_transcript(transcript: &HashTranscript) -> Vec<HashOutput> {
     let mut hash = XoodyakHash::default();
     transcript
         .ops
         .iter()
-        .chain(iter::once(&HashOp::Squeeze(16)))
         .flat_map(|op| match op {
             HashOp::Absorb(data) => {
                 hash.absorb(data);
@@ -72,14 +68,12 @@ fn apply_hash_transcript(transcript: &HashTranscript) -> Vec<HashOutput> {
         .collect()
 }
 
-/// Apply the transcript's operations to Xoodyak in keyed mode, plus a final `Squeeze(16)` to
-/// establish the duplex's final state, and return the duplex's outputs.
+/// Apply the transcript's operations to Xoodyak in keyed mode and return the duplex's outputs.
 fn apply_keyed_transcript(transcript: &KeyedTranscript) -> Vec<KeyedOutput> {
     let mut keyed = XoodyakKeyed::new(&transcript.key, &transcript.nonce, &transcript.counter);
     transcript
         .ops
         .iter()
-        .chain(iter::once(&KeyedOp::Squeeze(16)))
         .flat_map(|op| match op {
             KeyedOp::Absorb(data) => {
                 keyed.absorb(data);
@@ -158,13 +152,19 @@ fn arb_keyed_op() -> impl Strategy<Value = KeyedOp> {
 }
 
 prop_compose! {
-    fn arb_hash_transcript()(ops in vec(arb_hash_op(), 0..62)) -> HashTranscript {
+    fn arb_hash_transcript()(mut ops in vec(arb_hash_op(), 0..62)) -> HashTranscript {
+        ops.push(HashOp::Squeeze(16));
         HashTranscript { ops }
     }
 }
 
 prop_compose! {
-    fn arb_keyed_transcript()(key in arb_key(), nonce in arb_nonce(), counter in arb_counter(), ops in vec(arb_keyed_op(), 0..62)) -> KeyedTranscript {
+    fn arb_keyed_transcript()(
+        key in arb_key(), nonce in arb_nonce(),
+        counter in arb_counter(),
+        mut ops in vec(arb_keyed_op(), 0..62),
+    ) -> KeyedTranscript {
+        ops.push(KeyedOp::Squeeze(16));
         KeyedTranscript{ key, nonce, counter, ops }
     }
 }
