@@ -90,57 +90,16 @@ fn apply_keyed_transcript(transcript: &KeyedTranscript) -> Vec<KeyedOutput> {
         .collect()
 }
 
-/// Apply the transcript's operations to two duplexes--`outbound` and `inbound`--checking that both
-/// duplexes can correctly encrypt and decrypt each other's outputs and remain synchronized.
-fn check_keyed_transcript_symmetry(transcript: &KeyedTranscript) {
-    let mut outbound = XoodyakKeyed::new(&transcript.key, &transcript.nonce, &transcript.counter);
-    let mut inbound = XoodyakKeyed::new(&transcript.key, &transcript.nonce, &transcript.counter);
-
-    for op in &transcript.ops {
-        match op {
-            KeyedOp::Absorb(data) => {
-                outbound.absorb(data);
-                inbound.absorb(data);
-            }
-            KeyedOp::Squeeze(n) => {
-                assert_eq!(outbound.squeeze(*n), inbound.squeeze(*n));
-            }
-            KeyedOp::Encrypt(plaintext) => {
-                assert_eq!(plaintext, &inbound.decrypt(&outbound.encrypt(plaintext)));
-            }
-            KeyedOp::Decrypt(ciphertext) => {
-                assert_eq!(ciphertext, &inbound.encrypt(&outbound.decrypt(ciphertext)));
-            }
-            KeyedOp::Ratchet => {
-                outbound.ratchet();
-                inbound.ratchet();
-            }
-        }
-    }
-
-    assert_eq!(outbound.squeeze(16), inbound.squeeze(16));
-}
-
+/// An arbitrary byte string with length 0..200.
 fn arb_data() -> impl Strategy<Value = Vec<u8>> {
     vec(any::<u8>(), 0..200)
 }
-
-fn arb_key() -> impl Strategy<Value = Vec<u8>> {
-    vec(any::<u8>(), 1..16)
-}
-
-fn arb_nonce() -> impl Strategy<Value = Vec<u8>> {
-    vec(any::<u8>(), 0..16)
-}
-
-fn arb_counter() -> impl Strategy<Value = Vec<u8>> {
-    vec(any::<u8>(), 0..16)
-}
-
+/// An arbitrary hash mode operation.
 fn arb_hash_op() -> impl Strategy<Value = HashOp> {
     prop_oneof![arb_data().prop_map(HashOp::Absorb), (1usize..256).prop_map(HashOp::Squeeze),]
 }
 
+/// An arbitrary keyed mode operation.
 fn arb_keyed_op() -> impl Strategy<Value = KeyedOp> {
     prop_oneof![
         arb_data().prop_map(KeyedOp::Absorb),
@@ -152,6 +111,8 @@ fn arb_keyed_op() -> impl Strategy<Value = KeyedOp> {
 }
 
 prop_compose! {
+    /// A transcript of 0..62 arbitrary hash operations terminated with a `Squeeze(16)` operation to
+    /// capture the duplex's final state.
     fn arb_hash_transcript()(mut ops in vec(arb_hash_op(), 0..62)) -> HashTranscript {
         ops.push(HashOp::Squeeze(16));
         HashTranscript { ops }
@@ -159,9 +120,12 @@ prop_compose! {
 }
 
 prop_compose! {
+    /// A transcript of 0..62 arbitrary keyed operations terminated with a `Squeeze(16)` operation
+    /// to capture the duplex's final state.
     fn arb_keyed_transcript()(
-        key in arb_key(), nonce in arb_nonce(),
-        counter in arb_counter(),
+        key in vec(any::<u8>(), 1..16),
+        nonce in vec(any::<u8>(), 0..16),
+        counter in vec(any::<u8>(), 0..16),
         mut ops in vec(arb_keyed_op(), 0..62),
     ) -> KeyedTranscript {
         ops.push(KeyedOp::Squeeze(16));
@@ -170,32 +134,62 @@ prop_compose! {
 }
 
 proptest! {
+    /// Any two equal hash mode transcripts must produce equal outputs. Any two different
+    /// transcripts must produce different outputs.
     #[test]
     fn hash_transcript_consistency(t0 in arb_hash_transcript(), t1 in arb_hash_transcript()) {
         let out0 = apply_hash_transcript(&t0);
         let out1 = apply_hash_transcript(&t1);
 
         if t0 == t1 {
-            assert_eq!(out0, out1);
+            prop_assert_eq!(out0, out1);
         } else  {
-            assert_ne!(out0, out1);
+            prop_assert_ne!(out0, out1);
         }
     }
 
+    /// Any two equal keyed mode transcripts must produce equal outputs. Any two different
+    /// transcripts must produce different outputs.
     #[test]
     fn keyed_transcript_consistency(t0 in arb_keyed_transcript(), t1 in arb_keyed_transcript()) {
         let out0 = apply_keyed_transcript(&t0);
         let out1 = apply_keyed_transcript(&t1);
 
         if t0 == t1 {
-            assert_eq!(out0, out1);
+            prop_assert_eq!(out0, out1);
         } else  {
-            assert_ne!(out0, out1);
+            prop_assert_ne!(out0, out1);
         }
     }
 
+    /// For any transcript, reversible outputs (e.g. encrypt/decrypt) must be symmetric.
     #[test]
     fn keyed_transcript_symmetry(t in arb_keyed_transcript()) {
-        check_keyed_transcript_symmetry(&t);
+        let mut outbound = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+        let mut inbound = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+
+        for op in &t.ops {
+            match op {
+                KeyedOp::Absorb(data) => {
+                    outbound.absorb(data);
+                    inbound.absorb(data);
+                }
+                KeyedOp::Squeeze(n) => {
+                    prop_assert_eq!(outbound.squeeze(*n), inbound.squeeze(*n));
+                }
+                KeyedOp::Encrypt(plaintext) => {
+                    prop_assert_eq!(plaintext, &inbound.decrypt(&outbound.encrypt(plaintext)));
+                }
+                KeyedOp::Decrypt(ciphertext) => {
+                    prop_assert_eq!(ciphertext, &inbound.encrypt(&outbound.decrypt(ciphertext)));
+                }
+                KeyedOp::Ratchet => {
+                    outbound.ratchet();
+                    inbound.ratchet();
+                }
+            }
+        }
+
+        prop_assert_eq!(outbound.squeeze(16), inbound.squeeze(16));
     }
 }
