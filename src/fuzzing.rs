@@ -178,9 +178,9 @@ proptest! {
         let out1 = apply_hash_transcript(&t1);
 
         if t0 == t1 {
-            prop_assert_eq!(out0, out1);
+            prop_assert_eq!(out0, out1, "equal transcripts produced different outputs");
         } else  {
-            prop_assert_ne!(out0, out1);
+            prop_assert_ne!(out0, out1, "different transcripts produced equal outputs");
         }
     }
 
@@ -192,9 +192,9 @@ proptest! {
         let out1 = apply_keyed_transcript(&t1);
 
         if t0 == t1 {
-            prop_assert_eq!(out0, out1);
+            prop_assert_eq!(out0, out1, "equal transcripts produced different outputs");
         } else  {
-            prop_assert_ne!(out0, out1);
+            prop_assert_ne!(out0, out1, "different transcripts produced equal outputs");
         }
     }
 
@@ -204,7 +204,7 @@ proptest! {
         let (t_inv, a) = invert_keyed_transcript(&t);
         let (t_p, b) = invert_keyed_transcript(&t_inv);
 
-        prop_assert_eq!(t, t_p);
-        prop_assert_eq!(a, b);
+        prop_assert_eq!(t, t_p, "non-commutative transcript inversion");
+        prop_assert_eq!(a, b, "different squeezed outputs");
     }
 }
