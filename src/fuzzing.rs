@@ -175,13 +175,19 @@ proptest! {
                     inbound.absorb(data);
                 }
                 KeyedOp::Squeeze(n) => {
-                    prop_assert_eq!(outbound.squeeze(*n), inbound.squeeze(*n));
+                    let a = outbound.squeeze(*n);
+                    let b = inbound.squeeze(*n);
+                    prop_assert_eq!(a, b);
                 }
                 KeyedOp::Encrypt(plaintext) => {
-                    prop_assert_eq!(plaintext, &inbound.decrypt(&outbound.encrypt(plaintext)));
+                    let a = outbound.encrypt(plaintext);
+                    let b = inbound.decrypt(&a);
+                    prop_assert_eq!(plaintext, &b);
                 }
                 KeyedOp::Decrypt(ciphertext) => {
-                    prop_assert_eq!(ciphertext, &inbound.encrypt(&outbound.decrypt(ciphertext)));
+                    let a = outbound.decrypt(ciphertext);
+                    let b = inbound.encrypt(&a);
+                    prop_assert_eq!(ciphertext, &b);
                 }
                 KeyedOp::Ratchet => {
                     outbound.ratchet();
