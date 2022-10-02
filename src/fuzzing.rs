@@ -53,10 +53,9 @@ struct KeyedTranscript {
 }
 
 /// Apply the transcript's operations to Xoodyak in hash mode and return the duplex's outputs.
-fn apply_hash_transcript(transcript: &HashTranscript) -> Vec<HashOutput> {
+fn apply_hash_transcript(t: &HashTranscript) -> Vec<HashOutput> {
     let mut hash = XoodyakHash::default();
-    transcript
-        .ops
+    t.ops
         .iter()
         .flat_map(|op| match op {
             HashOp::Absorb(data) => {
@@ -69,10 +68,9 @@ fn apply_hash_transcript(transcript: &HashTranscript) -> Vec<HashOutput> {
 }
 
 /// Apply the transcript's operations to Xoodyak in keyed mode and return the duplex's outputs.
-fn apply_keyed_transcript(transcript: &KeyedTranscript) -> Vec<KeyedOutput> {
-    let mut keyed = XoodyakKeyed::new(&transcript.key, &transcript.nonce, &transcript.counter);
-    transcript
-        .ops
+fn apply_keyed_transcript(t: &KeyedTranscript) -> Vec<KeyedOutput> {
+    let mut keyed = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+    t.ops
         .iter()
         .flat_map(|op| match op {
             KeyedOp::Absorb(data) => {
