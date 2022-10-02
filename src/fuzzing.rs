@@ -62,7 +62,7 @@ fn apply_hash_transcript(t: &HashTranscript) -> Vec<HashOutput> {
                 hash.absorb(data);
                 None
             }
-            HashOp::Squeeze(n) => Some(HashOutput::Squeezed(hash.squeeze(*n))),
+            &HashOp::Squeeze(n) => Some(HashOutput::Squeezed(hash.squeeze(n))),
         })
         .collect()
 }
@@ -77,7 +77,7 @@ fn apply_keyed_transcript(t: &KeyedTranscript) -> Vec<KeyedOutput> {
                 keyed.absorb(data);
                 None
             }
-            KeyedOp::Squeeze(n) => Some(KeyedOutput::Squeezed(keyed.squeeze(*n))),
+            &KeyedOp::Squeeze(n) => Some(KeyedOutput::Squeezed(keyed.squeeze(n))),
             KeyedOp::Encrypt(data) => Some(KeyedOutput::Encrypted(keyed.encrypt(data))),
             KeyedOp::Decrypt(data) => Some(KeyedOutput::Decrypted(keyed.decrypt(data))),
             KeyedOp::Ratchet => {
@@ -101,9 +101,9 @@ fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>
                 keyed.absorb(data);
                 KeyedOp::Absorb(data.to_vec())
             }
-            KeyedOp::Squeeze(n) => {
-                squeezed.push(keyed.squeeze(*n));
-                KeyedOp::Squeeze(*n)
+            &KeyedOp::Squeeze(n) => {
+                squeezed.push(keyed.squeeze(n));
+                KeyedOp::Squeeze(n)
             }
             KeyedOp::Encrypt(plaintext) => KeyedOp::Decrypt(keyed.decrypt(plaintext)),
             KeyedOp::Decrypt(ciphertext) => KeyedOp::Encrypt(keyed.encrypt(ciphertext)),
@@ -113,6 +113,7 @@ fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>
             }
         })
         .collect();
+
     (
         KeyedTranscript {
             key: t.key.clone(),
