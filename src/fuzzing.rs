@@ -90,6 +90,42 @@ fn apply_keyed_transcript(transcript: &KeyedTranscript) -> Vec<KeyedOutput> {
         .collect()
 }
 
+/// Apply the transcript's operations to Xoodyak in keyed mode and return the transcript's inverse
+/// and the duplex's squeezed outputs.
+fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>>) {
+    let mut keyed = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+    let mut squeezed = Vec::new();
+    let ops = t
+        .ops
+        .iter()
+        .map(|op| match op {
+            KeyedOp::Absorb(data) => {
+                keyed.absorb(data);
+                KeyedOp::Absorb(data.to_vec())
+            }
+            KeyedOp::Squeeze(n) => {
+                squeezed.push(keyed.squeeze(*n));
+                KeyedOp::Squeeze(*n)
+            }
+            KeyedOp::Encrypt(plaintext) => KeyedOp::Decrypt(keyed.decrypt(plaintext)),
+            KeyedOp::Decrypt(ciphertext) => KeyedOp::Encrypt(keyed.encrypt(ciphertext)),
+            KeyedOp::Ratchet => {
+                keyed.ratchet();
+                KeyedOp::Ratchet
+            }
+        })
+        .collect();
+    (
+        KeyedTranscript {
+            key: t.key.clone(),
+            nonce: t.nonce.clone(),
+            counter: t.counter.clone(),
+            ops,
+        },
+        squeezed,
+    )
+}
+
 /// An arbitrary byte string with length 0..200.
 fn arb_data() -> impl Strategy<Value = Vec<u8>> {
     vec(any::<u8>(), 0..200)
@@ -165,35 +201,10 @@ proptest! {
     /// For any transcript, reversible outputs (e.g. encrypt/decrypt) must be symmetric.
     #[test]
     fn keyed_transcript_symmetry(t in arb_keyed_transcript()) {
-        let mut outbound = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
-        let mut inbound = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+        let (t_inv, a) = invert_keyed_transcript(&t);
+        let (t_p, b) = invert_keyed_transcript(&t_inv);
 
-        for op in &t.ops {
-            match op {
-                KeyedOp::Absorb(data) => {
-                    outbound.absorb(data);
-                    inbound.absorb(data);
-                }
-                KeyedOp::Squeeze(n) => {
-                    let a = outbound.squeeze(*n);
-                    let b = inbound.squeeze(*n);
-                    prop_assert_eq!(a, b);
-                }
-                KeyedOp::Encrypt(plaintext) => {
-                    let a = outbound.encrypt(plaintext);
-                    let b = inbound.decrypt(&a);
-                    prop_assert_eq!(plaintext, &b);
-                }
-                KeyedOp::Decrypt(ciphertext) => {
-                    let a = outbound.decrypt(ciphertext);
-                    let b = inbound.encrypt(&a);
-                    prop_assert_eq!(ciphertext, &b);
-                }
-                KeyedOp::Ratchet => {
-                    outbound.ratchet();
-                    inbound.ratchet();
-                }
-            }
-        }
+        prop_assert_eq!(t, t_p);
+        prop_assert_eq!(a, b);
     }
 }
