@@ -195,7 +195,5 @@ proptest! {
                 }
             }
         }
-
-        prop_assert_eq!(outbound.squeeze(16), inbound.squeeze(16));
     }
 }
