@@ -38,7 +38,7 @@ keccak = "0.1.2"
 proptest = "1.0.0"
 sha2 = "0.10.6"
 sha3 = "0.10.5"
-strobe-rs = "0.7.1"
+strobe-rs = "0.8.1"
 
 [[bench]]
 name = "benchmarks"
