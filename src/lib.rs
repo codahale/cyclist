@@ -360,6 +360,7 @@ where
     pub fn new(key: &[u8], key_id: &[u8], counter: &[u8]) -> Self {
         let mut core =
             CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
+        assert!(!key.is_empty(), "key length must be > 0");
         assert!(
             key.len() + key_id.len() <= ABSORB_RATE - 1,
             "combined key and key ID length must be <= {}",
