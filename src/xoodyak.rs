@@ -111,6 +111,19 @@ mod tests {
     }
 
     #[test]
+    fn rust_xoodyak_interop() {
+        // from https://github.com/jedisct1/rust-xoodyak/blob/868bb8892df7b9e5fa93fe30320ca81ed5bb4556/src/test.rs#L146-L165
+        let mut keyed =
+            XoodyakKeyed::new(b"key", &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], &[]);
+        keyed.absorb(b"ad");
+        keyed.encrypt(b"message");
+        assert_eq!(
+            vec![12, 91, 0, 120, 191, 214, 119, 66, 122, 225, 184, 239, 213, 214, 247, 57],
+            keyed.squeeze(16)
+        );
+    }
+
+    #[test]
     fn round_trip() {
         let mut d = XoodyakKeyed::new(b"ok then", b"", b"");
         let m = b"it's a deal".to_vec();
