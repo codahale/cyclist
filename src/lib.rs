@@ -359,8 +359,8 @@ where
         let mut core =
             CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
         assert!(
-            key.len() + nonce.len() < ABSORB_RATE - 1,
-            "key and nonce must be < {}",
+            key.len() + nonce.len() <= ABSORB_RATE - 1,
+            "key and nonce must be <= {}",
             ABSORB_RATE - 1,
         );
 
