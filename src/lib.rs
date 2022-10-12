@@ -24,7 +24,7 @@
 //! mac.absorb(b"This is an input message!");
 //! let tag = mac.squeeze(16);
 //!
-//! assert_eq!(tag, vec![51, 9, 222, 84, 128, 163, 130, 40, 35, 128, 18, 50, 94, 35, 18, 220]);
+//! assert_eq!(tag, vec![194, 166, 86, 80, 74, 62, 172, 115, 122, 107, 186, 213, 252, 82, 239, 186]);
 //! ```
 //!
 //! # Authenticated Encryption And Data
@@ -37,7 +37,7 @@
 //! aead.absorb(b"This is authenticated data!");
 //! let ciphertext = aead.seal(b"This is the plaintext!");
 //!
-//! assert_eq!(ciphertext, vec![97, 247, 123, 78, 11, 4, 150, 39, 135, 111, 17, 144, 2, 213, 214, 67, 129, 74, 235, 106, 181, 3, 167, 200, 108, 162, 56, 51, 224, 223, 216, 143, 88, 206, 100, 125, 51, 44]);
+//! assert_eq!(ciphertext, vec![100, 182, 152, 49, 219, 148, 32, 124, 17, 34, 159, 169, 12, 246, 224, 13, 23, 115, 47, 175, 149, 159, 145, 238, 190, 53, 77, 235, 98, 255, 52, 48, 54, 219, 148, 27, 208, 58]);
 //! ```
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -376,8 +376,8 @@ where
         state[state_len..state_len + nonce.len()].copy_from_slice(nonce);
         state_len += nonce.len();
 
-        // Set the last byte of the initial state to the key length.
-        state[state_len] = key.len().try_into().expect("invalid key length");
+        // Set the last byte of the initial state to the nonce length.
+        state[state_len] = nonce.len().try_into().expect("invalid key length");
         state_len += 1;
 
         // Absorb the initial state.
