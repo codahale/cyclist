@@ -71,7 +71,7 @@ mod tests {
             0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f, 0x00, 0xf1, 0xe2, 0xd3, 0xc4, 0xb5, 0xa6, 0x97,
             0x88, 0x79,
         ];
-        let nonce = [
+        let key_id = [
             0x6b, 0x4c, 0x2d, 0x0e, 0xef, 0xd0, 0xb1, 0x92, 0x72, 0x53, 0x34, 0x15, 0xf6, 0xd7,
             0xb8, 0x99,
         ];
@@ -82,12 +82,12 @@ mod tests {
             0x27, 0x48, 0xd7, 0xa8, 0x6e, 0x78, 0x8e, 0xb9, 0xd4,
         ];
 
-        let mut x = XoodyakKeyed::new(&key, &nonce, b"");
+        let mut x = XoodyakKeyed::new(&key, &key_id, b"");
         x.absorb(&ad);
         let ciphertext_p = x.seal(&plaintext);
         assert_eq!(&ciphertext, ciphertext_p.as_slice());
 
-        let mut x = XoodyakKeyed::new(&key, &nonce, b"");
+        let mut x = XoodyakKeyed::new(&key, &key_id, b"");
         x.absorb(&ad);
         let plaintext_p = x.open(&ciphertext);
         assert_eq!(Some(plaintext.to_vec()), plaintext_p);

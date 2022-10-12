@@ -4,4 +4,4 @@
 #
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
-cc b3d9290c1a0068381a8f1e895fb7f42f9fcf66383a1e5b6d5b030b73d0bd017b # shrinks to t0 = KeyedTranscript { key: [0], nonce: [], counter: [], ops: [] }, t1 = KeyedTranscript { key: [0], nonce: [], counter: [], ops: [Ratchet] }
+cc b3d9290c1a0068381a8f1e895fb7f42f9fcf66383a1e5b6d5b030b73d0bd017b # shrinks to t0 = KeyedTranscript { key: [0], key_id: [], counter: [], ops: [] }, t1 = KeyedTranscript { key: [0], key_id: [], counter: [], ops: [Ratchet] }

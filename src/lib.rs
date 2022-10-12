@@ -1,5 +1,7 @@
-//! Cyclist is a mode of operation on top of a full-state keyed duplex construction which provides
-//! fine-grained symmetric-key cryptographic services via stateful objects.
+//! [Cyclist][spec] is a mode of operation on top of a full-state keyed duplex construction which
+//! provides fine-grained symmetric-key cryptographic services via stateful objects.
+//!
+//! [spec]: https://csrc.nist.gov/CSRC/media/Projects/lightweight-cryptography/documents/finalist-round/updated-spec-doc/xoodyak-spec-final.pdf
 //!
 //! # Message Digests
 //!
@@ -353,14 +355,14 @@ impl<
 where
     P: Permutation<WIDTH>,
 {
-    /// Creates a new [`CyclistKeyed`] instance with the given key, optional nonce, and optional
+    /// Creates a new [`CyclistKeyed`] instance with the given key, optional key ID, and optional
     /// counter.
-    pub fn new(key: &[u8], nonce: &[u8], counter: &[u8]) -> Self {
+    pub fn new(key: &[u8], key_id: &[u8], counter: &[u8]) -> Self {
         let mut core =
             CyclistCore::<P, WIDTH, true, ABSORB_RATE, SQUEEZE_RATE, RATCHET_RATE>::new();
         assert!(
-            key.len() + nonce.len() <= ABSORB_RATE - 1,
-            "key and nonce must be <= {}",
+            key.len() + key_id.len() <= ABSORB_RATE - 1,
+            "combined key and key ID length must be <= {}",
             ABSORB_RATE - 1,
         );
 
@@ -372,12 +374,12 @@ where
         state[state_len..state_len + key.len()].copy_from_slice(key);
         state_len += key.len();
 
-        // Append the nonce to the initial state.
-        state[state_len..state_len + nonce.len()].copy_from_slice(nonce);
-        state_len += nonce.len();
+        // Append the key ID to the initial state.
+        state[state_len..state_len + key_id.len()].copy_from_slice(key_id);
+        state_len += key_id.len();
 
-        // Set the last byte of the initial state to the nonce length.
-        state[state_len] = nonce.len().try_into().expect("invalid key length");
+        // Set the last byte of the initial state to the key ID length.
+        state[state_len] = key_id.len().try_into().expect("invalid key length");
         state_len += 1;
 
         // Absorb the initial state.

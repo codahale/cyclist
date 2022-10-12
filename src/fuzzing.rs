@@ -43,11 +43,11 @@ enum KeyedOutput {
     Decrypted(Vec<u8>),
 }
 
-/// A transcript of input operations for Cyclist's keyed mode, plus shared key, nonce, and counter.
+/// A transcript of input operations for Cyclist's keyed mode, plus shared key, key ID, and counter.
 #[derive(Clone, Debug, PartialEq)]
 struct KeyedTranscript {
     key: Vec<u8>,
-    nonce: Vec<u8>,
+    key_id: Vec<u8>,
     counter: Vec<u8>,
     ops: Vec<KeyedOp>,
 }
@@ -69,7 +69,7 @@ fn apply_hash_transcript(t: &HashTranscript) -> Vec<HashOutput> {
 
 /// Apply the transcript's operations to Xoodyak in keyed mode and return the duplex's outputs.
 fn apply_keyed_transcript(t: &KeyedTranscript) -> Vec<KeyedOutput> {
-    let mut keyed = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+    let mut keyed = XoodyakKeyed::new(&t.key, &t.key_id, &t.counter);
     t.ops
         .iter()
         .flat_map(|op| match op {
@@ -91,7 +91,7 @@ fn apply_keyed_transcript(t: &KeyedTranscript) -> Vec<KeyedOutput> {
 /// Apply the transcript's operations to Xoodyak in keyed mode and return the transcript's inverse
 /// and the duplex's squeezed outputs.
 fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>>) {
-    let mut keyed = XoodyakKeyed::new(&t.key, &t.nonce, &t.counter);
+    let mut keyed = XoodyakKeyed::new(&t.key, &t.key_id, &t.counter);
     let mut squeezed = Vec::new();
     let ops = t
         .ops
@@ -117,7 +117,7 @@ fn invert_keyed_transcript(t: &KeyedTranscript) -> (KeyedTranscript, Vec<Vec<u8>
     (
         KeyedTranscript {
             key: t.key.clone(),
-            nonce: t.nonce.clone(),
+            key_id: t.key_id.clone(),
             counter: t.counter.clone(),
             ops,
         },
@@ -159,12 +159,12 @@ prop_compose! {
     /// to capture the duplex's final state.
     fn keyed_transcript()(
         key in vec(any::<u8>(), 1..16),
-        nonce in vec(any::<u8>(), 0..16),
+        key_id in vec(any::<u8>(), 0..16),
         counter in vec(any::<u8>(), 0..16),
         mut ops in vec(keyed_op(), 0..62),
     ) -> KeyedTranscript {
         ops.push(KeyedOp::Squeeze(16));
-        KeyedTranscript{ key, nonce, counter, ops }
+        KeyedTranscript{ key, key_id, counter, ops }
     }
 }
 
