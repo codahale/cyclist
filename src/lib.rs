@@ -366,24 +366,22 @@ where
             ABSORB_RATE - 1,
         );
 
-        // Initialize a buffer for the initial state.
+        // Initialize and partition a buffer for the initial state.
         let mut state = [0u8; ABSORB_RATE];
-        let mut state_len = 0;
+        let (key_state, key_id_state) = state.split_at_mut(key.len());
+        let (key_id_state, len_state) = key_id_state.split_at_mut(key_id.len());
 
         // Append the key to the initial state.
-        state[state_len..state_len + key.len()].copy_from_slice(key);
-        state_len += key.len();
+        key_state.copy_from_slice(key);
 
         // Append the key ID to the initial state.
-        state[state_len..state_len + key_id.len()].copy_from_slice(key_id);
-        state_len += key_id.len();
+        key_id_state.copy_from_slice(key_id);
 
         // Set the last byte of the initial state to the key ID length.
-        state[state_len] = key_id.len().try_into().expect("invalid key length");
-        state_len += 1;
+        len_state[0] = key_id.len().try_into().expect("invalid key length");
 
         // Absorb the initial state.
-        core.absorb_any(&state[..state_len], ABSORB_RATE, 0x02);
+        core.absorb_any(&state[..key.len() + key_id.len() + 1], ABSORB_RATE, 0x02);
 
         // If given a counter, trickle it in one byte at a time.
         if !counter.is_empty() {
