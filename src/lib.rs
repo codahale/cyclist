@@ -185,7 +185,7 @@ where
         if KEYED {
             self.state.add_byte(cu, WIDTH - 1);
         }
-        P::permute(&mut self.state);
+        self.state.permute();
         self.up = true;
         if let Some(out) = out {
             self.state.extract_bytes(out);
