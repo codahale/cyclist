@@ -4,8 +4,7 @@
 //!
 //! Uses the [`Xoodoo`] permutation to provide ~128-bit security.
 
-use core::mem;
-
+use crate::macros::{bytes_to_lanes, lanes_to_bytes};
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
 /// Xoodyak in hash mode.
@@ -48,23 +47,9 @@ impl Permutation<48> for Xoodoo {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u32; 12];
-        bytes_to_lanes(&self.0, &mut lanes);
+        bytes_to_lanes!(u32, self.0, lanes);
         xoodoo_p::xoodoo::<{ xoodoo_p::MAX_ROUNDS }>(&mut lanes);
-        lanes_to_bytes(&lanes, &mut self.0);
-    }
-}
-
-#[inline(always)]
-fn bytes_to_lanes(bytes: &[u8; 48], lanes: &mut [u32; 12]) {
-    for (b, n) in bytes.chunks(mem::size_of::<u32>()).zip(lanes.iter_mut()) {
-        *n = u32::from_le_bytes(b.try_into().unwrap());
-    }
-}
-
-#[inline(always)]
-fn lanes_to_bytes(lanes: &[u32; 12], bytes: &mut [u8; 48]) {
-    for (b, n) in bytes.chunks_mut(mem::size_of::<u32>()).zip(lanes.iter()) {
-        b.copy_from_slice(&n.to_le_bytes());
+        lanes_to_bytes!(u32, lanes, self.0);
     }
 }
 

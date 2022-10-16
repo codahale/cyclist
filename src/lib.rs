@@ -61,6 +61,7 @@ use constant_time_eq::constant_time_eq;
 
 pub mod fuzzing;
 pub mod keccyak;
+mod macros;
 pub mod xoodyak;
 
 /// A permutation bijectively maps all blocks of the given width to other blocks of the given width.

@@ -24,8 +24,7 @@
 //! **N.B:** This is not a published configuration for Cyclist and there are no official security
 //! analyses or specifications.
 
-use core::mem;
-
+use crate::macros::{bytes_to_lanes, lanes_to_bytes};
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
 /// A Cyclist hash using Keccak-f\[1600\] and `r=1088`, offering 256-bit security and a very
@@ -115,9 +114,9 @@ impl Permutation<200> for KeccakP1600_10 {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u64; 25];
-        bytes_to_lanes(&self.0, &mut lanes);
+        bytes_to_lanes!(u64, self.0, lanes);
         keccak_p::keccak_p1600_10(&mut lanes);
-        lanes_to_bytes(&lanes, &mut self.0);
+        lanes_to_bytes!(u64, lanes, self.0);
     }
 }
 
@@ -148,9 +147,9 @@ impl Permutation<200> for KeccakP1600_12 {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u64; 25];
-        bytes_to_lanes(&self.0, &mut lanes);
+        bytes_to_lanes!(u64, self.0, lanes);
         keccak_p::keccak_p1600_12(&mut lanes);
-        lanes_to_bytes(&lanes, &mut self.0);
+        lanes_to_bytes!(u64, lanes, self.0);
     }
 }
 
@@ -181,9 +180,9 @@ impl Permutation<200> for KeccakP1600_14 {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u64; 25];
-        bytes_to_lanes(&self.0, &mut lanes);
+        bytes_to_lanes!(u64, self.0, lanes);
         keccak_p::keccak_p1600_14(&mut lanes);
-        lanes_to_bytes(&lanes, &mut self.0);
+        lanes_to_bytes!(u64, lanes, self.0);
     }
 }
 
@@ -214,23 +213,9 @@ impl Permutation<200> for KeccakF1600 {
     #[inline(always)]
     fn permute(&mut self) {
         let mut lanes = [0u64; 25];
-        bytes_to_lanes(&self.0, &mut lanes);
+        bytes_to_lanes!(u64, self.0, lanes);
         keccak_p::keccak_f1600(&mut lanes);
-        lanes_to_bytes(&lanes, &mut self.0);
-    }
-}
-
-#[inline(always)]
-fn bytes_to_lanes(bytes: &[u8; 200], lanes: &mut [u64; 25]) {
-    for (b, n) in bytes.chunks(mem::size_of::<u64>()).zip(lanes.iter_mut()) {
-        *n = u64::from_le_bytes(b.try_into().unwrap());
-    }
-}
-
-#[inline(always)]
-fn lanes_to_bytes(lanes: &[u64; 25], bytes: &mut [u8; 200]) {
-    for (b, n) in bytes.chunks_mut(mem::size_of::<u64>()).zip(lanes.iter()) {
-        b.copy_from_slice(&n.to_le_bytes());
+        lanes_to_bytes!(u64, lanes, self.0);
     }
 }
 
