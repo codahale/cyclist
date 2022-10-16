@@ -3,7 +3,8 @@
 //! Xoodyak, the official Cyclist selection.
 //!
 //! Uses the [`Xoodoo`] permutation to provide ~128-bit security.
-use byteorder::{ByteOrder, LittleEndian};
+
+use core::mem;
 
 use crate::{CyclistHash, CyclistKeyed, Permutation};
 
@@ -46,15 +47,24 @@ impl AsMut<[u8; 48]> for Xoodoo {
 impl Permutation<48> for Xoodoo {
     #[inline(always)]
     fn permute(&mut self) {
-        // Load state into lanes.
-        let mut st = [0u32; 12];
-        LittleEndian::read_u32_into(&self.0, &mut st);
+        let mut lanes = [0u32; 12];
+        bytes_to_lanes(&self.0, &mut lanes);
+        xoodoo_p::xoodoo::<{ xoodoo_p::MAX_ROUNDS }>(&mut lanes);
+        lanes_to_bytes(&lanes, &mut self.0);
+    }
+}
 
-        // Perform the permutation.
-        xoodoo_p::xoodoo::<{ xoodoo_p::MAX_ROUNDS }>(&mut st);
+#[inline(always)]
+fn bytes_to_lanes(bytes: &[u8; 48], lanes: &mut [u32; 12]) {
+    for (b, n) in bytes.chunks(mem::size_of::<u32>()).zip(lanes.iter_mut()) {
+        *n = u32::from_le_bytes(b.try_into().unwrap());
+    }
+}
 
-        // Load lanes into state.
-        LittleEndian::write_u32_into(&st, &mut self.0);
+#[inline(always)]
+fn lanes_to_bytes(lanes: &[u32; 12], bytes: &mut [u8; 48]) {
+    for (b, n) in bytes.chunks_mut(mem::size_of::<u32>()).zip(lanes.iter()) {
+        b.copy_from_slice(&n.to_le_bytes());
     }
 }
 
